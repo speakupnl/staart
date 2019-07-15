@@ -1,0 +1,13 @@
+os:
+  - linux
+  - osx
+language: node_js
+node_js:
+  - "10.16.0"
+install:
+  - "yarn"
+script:
+  - "yarn build"
+  - "yarn test"
+env:
+  - YARN_GPG=no
