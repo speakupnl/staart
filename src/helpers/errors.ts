@@ -6,16 +6,23 @@ import Joi from "@hapi/joi";
  * Parse default errors and send a safe string
  */
 export const safeError = (error: string) => {
-  const errorString = error.toString();
+  let errorString = error.toString();
+  if (errorString.startsWith("Error: "))
+    errorString = errorString.replace("Error: ", "");
   if (errorString.startsWith("joi:")) {
     const joiError = JSON.parse(
       errorString.split("joi:")[1]
     ) as Joi.ValidationError;
     return sendError(`422/${joiError.details[0].message}`);
   }
-  if (errorString.startsWith("JsonWebTokenError"))
+  if (errorString === "TokenExpiredError: jwt expired")
+    return sendError(ErrorCode.EXPIRED_TOKEN);
+  if (
+    errorString.startsWith("JsonWebTokenError") ||
+    errorString.startsWith("JsonWebTokenjwt")
+  )
     return sendError(ErrorCode.INVALID_TOKEN);
-  return sendError(error);
+  return sendError(errorString);
 };
 
 /**
@@ -23,10 +30,8 @@ export const safeError = (error: string) => {
  */
 export const sendError = (error: string) => {
   if (error.includes("/")) {
-    let status = 500;
-    try {
-      status = parseInt(error.split("/")[0]);
-    } catch (error) {}
+    let status = parseInt(error.split("/")[0]);
+    if (isNaN(status)) status = 500;
     const code = error.split("/")[1];
     return { status, code } as HTTPError;
   }

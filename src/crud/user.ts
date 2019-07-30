@@ -2,9 +2,16 @@ import {
   query,
   tableValues,
   setValues,
-  removeReadOnlyValues
+  removeReadOnlyValues,
+  tableName
 } from "../helpers/mysql";
-import { User, ApprovedLocation } from "../interfaces/tables/user";
+import {
+  User,
+  ApprovedLocation,
+  BackupCode,
+  AccessToken,
+  Session
+} from "../interfaces/tables/user";
 import {
   capitalizeFirstAndLastLetter,
   deleteSensitiveInfoUser,
@@ -21,13 +28,19 @@ import { getEmail, getVerifiedEmailObject } from "./email";
 import { cachedQuery, deleteItemFromCache } from "../helpers/cache";
 import md5 from "md5";
 import randomInt from "random-int";
-import { BackupCode } from "../interfaces/tables/backup-codes";
+import { getPaginatedData } from "./data";
+import { accessToken, invalidateToken } from "../helpers/jwt";
+import { TOKEN_EXPIRY_API_KEY_MAX } from "../config";
+import {
+  addLocationToSession,
+  addLocationToSessions
+} from "../helpers/location";
 
 /**
- * Get a list of all users
+ * Get a list of all ${tableName("users")}
  */
 export const getAllUsers = async () => {
-  return <User[]>await query("SELECT * from users");
+  return <User[]>await query(`SELECT * from ${tableName("users")}`);
 };
 
 /**
@@ -40,7 +53,7 @@ export const createUser = async (user: User) => {
   user.nickname = user.nickname || user.name.split(" ")[0];
   user.twoFactorEnabled = user.twoFactorEnabled || false;
   user.timezone = user.timezone || "Europe/Amsterdam";
-  user.password = await hash(user.password || "", 8);
+  user.password = user.password ? await hash(user.password, 8) : undefined;
   user.notificationEmails =
     user.notificationEmails || NotificationEmails.GENERAL;
   user.preferredLanguage = user.preferredLanguage || "en-us";
@@ -53,7 +66,7 @@ export const createUser = async (user: User) => {
   user.updatedAt = user.createdAt;
   // Create user
   return await query(
-    `INSERT INTO users ${tableValues(user)}`,
+    `INSERT INTO ${tableName("users")} ${tableValues(user)}`,
     Object.values(user)
   );
 };
@@ -67,7 +80,7 @@ export const getUser = async (id: number, secureOrigin = false) => {
     await cachedQuery(
       CacheCategories.USER,
       id,
-      `SELECT * FROM users WHERE id = ? LIMIT 1`,
+      `SELECT * FROM ${tableName("users")} WHERE id = ? LIMIT 1`,
       [id]
     )
   ))[0];
@@ -84,6 +97,22 @@ export const getUserByEmail = async (email: string, secureOrigin = false) => {
   if (!emailObject || !emailObject.userId)
     throw new Error(ErrorCode.USER_NOT_FOUND);
   return await getUser(emailObject.userId, secureOrigin);
+};
+
+/*
+ * Get user ID from a username
+ */
+export const getUserIdFromUsername = async (username: string) => {
+  const user = (<User[]>(
+    await cachedQuery(
+      CacheCategories.USER_USERNAME,
+      username,
+      `SELECT id FROM ${tableName("users")} WHERE username = ? LIMIT 1`,
+      [username]
+    )
+  ))[0];
+  if (user && user.id) return user.id;
+  throw new Error(ErrorCode.USER_NOT_FOUND);
 };
 
 /**
@@ -118,12 +147,14 @@ export const updateUser = async (id: number, user: KeyValue) => {
       usernameOwner.id != originalUser.id
     )
       throw new Error(ErrorCode.USERNAME_EXISTS);
+    if (originalUser.username && user.username !== originalUser.username)
+      deleteItemFromCache(CacheCategories.USER_USERNAME, originalUser.username);
   }
   deleteItemFromCache(CacheCategories.USER, id);
-  return await query(`UPDATE users SET ${setValues(user)} WHERE id = ?`, [
-    ...Object.values(user),
-    id
-  ]);
+  return await query(
+    `UPDATE ${tableName("users")} SET ${setValues(user)} WHERE id = ?`,
+    [...Object.values(user), id]
+  );
 };
 
 /**
@@ -131,7 +162,7 @@ export const updateUser = async (id: number, user: KeyValue) => {
  */
 export const deleteUser = async (id: number) => {
   deleteItemFromCache(CacheCategories.USER, id);
-  return await query("DELETE FROM users WHERE id = ?", [id]);
+  return await query(`DELETE FROM ${tableName("users")} WHERE id = ?`, [id]);
 };
 
 /**
@@ -149,7 +180,9 @@ export const addApprovedLocation = async (
     createdAt: new Date()
   };
   return await query(
-    `INSERT INTO \`approved-locations\` ${tableValues(subnetLocation)}`,
+    `INSERT INTO ${tableName("approved-locations")} ${tableValues(
+      subnetLocation
+    )}`,
     Object.values(subnetLocation)
   );
 };
@@ -158,18 +191,20 @@ export const addApprovedLocation = async (
  * Get a list of all approved locations of a user
  */
 export const getUserApprovedLocations = async (userId: number) => {
-  return await query("SELECT * FROM `approved-locations` WHERE userId = ?", [
-    userId
-  ]);
+  return await query(
+    `SELECT * FROM ${tableName("approved-locations")} WHERE userId = ?`,
+    [userId]
+  );
 };
 
 /**
  * Get a user by their username
  */
 export const getUserByUsername = async (username: string) => {
-  return ((await query("SELECT * FROM users WHERE username = ? LIMIT 1", [
-    username
-  ])) as User[])[0];
+  return ((await query(
+    `SELECT * FROM ${tableName("users")} WHERE username = ? LIMIT 1`,
+    [username]
+  )) as User[])[0];
 };
 
 /**
@@ -187,9 +222,10 @@ export const checkUsernameAvailability = async (username: string) => {
  * Delete all approved locations for a user
  */
 export const deleteAllUserApprovedLocations = async (userId: number) => {
-  return await query("DELETE FROM `approved-locations` WHERE userId = ?", [
-    userId
-  ]);
+  return await query(
+    `DELETE FROM ${tableName("approved-locations")} WHERE userId = ?`,
+    [userId]
+  );
 };
 
 /**
@@ -203,7 +239,9 @@ export const checkApprovedLocation = async (
   const subnet = anonymizeIpAddress(ipAddress);
   const approvedLocations = <ApprovedLocation[]>(
     await query(
-      "SELECT * FROM `approved-locations` WHERE userId = ? AND subnet = ? LIMIT 1",
+      `SELECT * FROM ${tableName(
+        "approved-locations"
+      )} WHERE userId = ? AND subnet = ? LIMIT 1`,
       [userId, subnet]
     )
   );
@@ -270,4 +308,183 @@ export const getUserBackupCode = async (userId: number, backupCode: number) => {
       [userId, backupCode]
     )
   ))[0];
+};
+
+/**
+ * Get a list of all approved locations of a user
+ */
+export const getUserAccessTokens = async (userId: number, query: KeyValue) => {
+  return await getPaginatedData({
+    table: "access-tokens",
+    conditions: {
+      userId
+    },
+    ...query
+  });
+};
+
+/**
+ * Get an API key
+ */
+export const getAccessToken = async (userId: number, accessTokenId: number) => {
+  return (<AccessToken[]>(
+    await query(
+      `SELECT * FROM ${tableName(
+        "access-tokens"
+      )} WHERE id = ? AND userId = ? LIMIT 1`,
+      [accessTokenId, userId]
+    )
+  ))[0];
+};
+
+/**
+ * Create an API key
+ */
+export const createAccessToken = async (newAccessToken: AccessToken) => {
+  newAccessToken.expiresAt =
+    newAccessToken.expiresAt || new Date(TOKEN_EXPIRY_API_KEY_MAX);
+  newAccessToken.createdAt = new Date();
+  newAccessToken.updatedAt = newAccessToken.createdAt;
+  newAccessToken.jwtAccessToken = await accessToken(newAccessToken);
+  return await query(
+    `INSERT INTO ${tableName("access-tokens")} ${tableValues(newAccessToken)}`,
+    Object.values(newAccessToken)
+  );
+};
+
+/**
+ * Update a user's details
+ */
+export const updateAccessToken = async (
+  userId: number,
+  accessTokenId: number,
+  data: KeyValue
+) => {
+  data.updatedAt = new Date();
+  data = removeReadOnlyValues(data);
+  const newAccessToken = await getAccessToken(userId, accessTokenId);
+  if (newAccessToken.jwtAccessToken)
+    await invalidateToken(newAccessToken.jwtAccessToken);
+  data.jwtAccessToken = await accessToken({ ...newAccessToken, ...data });
+  return await query(
+    `UPDATE ${tableName("access-tokens")} SET ${setValues(
+      data
+    )} WHERE id = ? AND userId = ?`,
+    [...Object.values(data), accessTokenId, userId]
+  );
+};
+
+/**
+ * Delete an API key
+ */
+export const deleteAccessToken = async (
+  userId: number,
+  accessTokenId: number
+) => {
+  const currentAccessToken = await getAccessToken(userId, accessTokenId);
+  if (currentAccessToken.jwtAccessToken)
+    await invalidateToken(currentAccessToken.jwtAccessToken);
+  return await query(
+    `DELETE FROM ${tableName(
+      "access-tokens"
+    )} WHERE id = ? AND userId = ? LIMIT 1`,
+    [accessTokenId, userId]
+  );
+};
+
+/**
+ * Get a list of all valid sessions of a user
+ */
+export const getUserSessions = async (userId: number, query: KeyValue) => {
+  const data = await getPaginatedData({
+    table: "sessions",
+    conditions: {
+      userId
+    },
+    ...query,
+    sort: "desc"
+  });
+  data.data.forEach((item, index) => {
+    delete data.data[index].jwtToken;
+  });
+  data.data = await addLocationToSessions(data.data);
+  return data;
+};
+
+/**
+ * Get a session
+ */
+export const getSession = async (userId: number, sessionId: number) => {
+  const data = await addLocationToSession(
+    (<Session[]>(
+      await query(
+        `SELECT * FROM ${tableName(
+          "sessions"
+        )} WHERE id = ? AND userId = ? LIMIT 1`,
+        [sessionId, userId]
+      )
+    ))[0]
+  );
+  if (data) delete data.jwtToken;
+  return data;
+};
+
+/**
+ * Create a session
+ */
+export const createSession = async (newSession: Session) => {
+  newSession.createdAt = new Date();
+  newSession.updatedAt = newSession.createdAt;
+  return await query(
+    `INSERT INTO ${tableName("sessions")} ${tableValues(newSession)}`,
+    Object.values(newSession)
+  );
+};
+
+/**
+ * Update a user's details
+ */
+export const updateSession = async (
+  userId: number,
+  sessionId: number,
+  data: KeyValue
+) => {
+  data.updatedAt = new Date();
+  data = removeReadOnlyValues(data);
+  return await query(
+    `UPDATE ${tableName("sessions")} SET ${setValues(
+      data
+    )} WHERE id = ? AND userId = ?`,
+    [...Object.values(data), sessionId, userId]
+  );
+};
+
+/**
+ * Update a user's details
+ */
+export const updateSessionByJwt = async (
+  userId: number,
+  sessionJwt: string,
+  data: KeyValue
+) => {
+  data.updatedAt = new Date();
+  data = removeReadOnlyValues(data);
+  return await query(
+    `UPDATE ${tableName("sessions")} SET ${setValues(
+      data
+    )} WHERE jwtToken = ? AND userId = ?`,
+    [...Object.values(data), sessionJwt, userId]
+  );
+};
+
+/**
+ * Invalidate a session
+ */
+export const deleteSession = async (userId: number, sessionId: number) => {
+  const currentSession = await getSession(userId, sessionId);
+  if (currentSession.jwtToken) await invalidateToken(currentSession.jwtToken);
+  return await query(
+    `DELETE FROM ${tableName("sessions")} WHERE id = ? AND userId = ? LIMIT 1`,
+    [sessionId, userId]
+  );
 };

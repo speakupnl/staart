@@ -7,8 +7,7 @@ import {
   DB_DATABASE,
   DB_TABLE_PREFIX
 } from "../config";
-import { User } from "../interfaces/tables/user";
-import { BackupCode } from "../interfaces/tables/backup-codes";
+import { User, BackupCode } from "../interfaces/tables/user";
 import { Email } from "../interfaces/tables/emails";
 import { Membership } from "../interfaces/tables/memberships";
 import { Organization } from "../interfaces/tables/organization";
@@ -16,6 +15,7 @@ import { Event } from "../interfaces/tables/events";
 import { KeyValue } from "../interfaces/general";
 import { boolValues, jsonValues, dateValues, readOnlyValues } from "./utils";
 import { getUserPrimaryEmailObject } from "../crud/email";
+import { InsertResult } from "../interfaces/mysql";
 
 export const pool = createPool({
   host: DB_HOST,
@@ -31,7 +31,7 @@ export const pool = createPool({
 export const query = (
   queryString: string,
   values?: (string | number | boolean | Date | undefined)[]
-) =>
+): InsertResult | any =>
   new Promise((resolve, reject) => {
     pool.getConnection((error, connection) => {
       if (error) return reject(error);
@@ -140,20 +140,28 @@ export const removeReadOnlyValues = (object: KeyValue) => {
 };
 
 export const addIsPrimaryToEmails = async (emails: Email[]) => {
-  const userPrimaryEmailObject = await getUserPrimaryEmailObject(
-    emails[0].userId
-  );
-  emails.map(email => {
-    email.isPrimary = email.id === userPrimaryEmailObject.id;
-    return email;
-  });
+  try {
+    const userPrimaryEmailObject = await getUserPrimaryEmailObject(
+      emails[0].userId
+    );
+    emails.map(email => {
+      email.isPrimary = email.id === userPrimaryEmailObject.id;
+      return email;
+    });
+  } catch (error) {}
   return emails;
 };
 
 export const addIsPrimaryToEmail = async (email: Email) => {
-  const userPrimaryEmailObject = await getUserPrimaryEmailObject(email.userId);
-  email.isPrimary = email.id === userPrimaryEmailObject.id;
-  return email;
+  try {
+    const userPrimaryEmailObject = await getUserPrimaryEmailObject(
+      email.userId
+    );
+    email.isPrimary = email.id === userPrimaryEmailObject.id;
+    return email;
+  } catch (error) {
+    return email;
+  }
 };
 
-export const tableName = (name: string) => `${DB_TABLE_PREFIX}${name}`;
+export const tableName = (name: string) => `\`${DB_TABLE_PREFIX}${name}\``;

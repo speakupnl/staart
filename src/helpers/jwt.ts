@@ -1,4 +1,4 @@
-import { sign, verify } from "jsonwebtoken";
+import { sign, verify, decode } from "jsonwebtoken";
 import {
   JWT_ISSUER,
   JWT_SECRET,
@@ -6,14 +6,23 @@ import {
   TOKEN_EXPIRY_PASSWORD_RESET,
   TOKEN_EXPIRY_LOGIN,
   TOKEN_EXPIRY_REFRESH,
-  TOKEN_EXPIRY_APPROVE_LOCATION
+  TOKEN_EXPIRY_APPROVE_LOCATION,
+  TOKEN_EXPIRY_API_KEY_MAX,
+  REDIS_URL
 } from "../config";
-import { User } from "../interfaces/tables/user";
+import { User, AccessToken } from "../interfaces/tables/user";
 import { Tokens, ErrorCode, EventType, Templates } from "../interfaces/enum";
-import { deleteSensitiveInfoUser } from "./utils";
-import { checkApprovedLocation } from "../crud/user";
+import {
+  deleteSensitiveInfoUser,
+  removeFalsyValues,
+  includesDomainInCommaList
+} from "./utils";
+import {
+  checkApprovedLocation,
+  createSession,
+  updateSessionByJwt
+} from "../crud/user";
 import { Locals } from "../interfaces/general";
-import { createEvent } from "../crud/event";
 import {
   getUserVerifiedEmails,
   getUserPrimaryEmail,
@@ -22,6 +31,10 @@ import {
 import { mail } from "./mail";
 import { getGeolocationFromIp } from "./location";
 import i18n from "../i18n";
+import { ApiKey } from "../interfaces/tables/organization";
+import cryptoRandomString from "crypto-random-string";
+import { createHandyClient } from "handy-redis";
+import ipRangeCheck from "ip-range-check";
 
 /**
  * Generate a new JWT
@@ -29,8 +42,8 @@ import i18n from "../i18n";
 export const generateToken = (
   payload: string | object | Buffer,
   expiresIn: string | number,
-  subject: string
-) =>
+  subject: Tokens
+): Promise<string> =>
   new Promise((resolve, reject) => {
     sign(
       // Payload is expected to be a plain object
@@ -39,7 +52,8 @@ export const generateToken = (
       {
         expiresIn,
         subject,
-        issuer: JWT_ISSUER
+        issuer: JWT_ISSUER,
+        jwtid: cryptoRandomString({ length: 12 })
       },
       (error, token) => {
         if (error) return reject(error);
@@ -55,14 +69,24 @@ export interface TokenResponse {
   id: number;
   ipAddress?: string;
 }
+export interface ApiKeyResponse {
+  id: number;
+  organizationId: number;
+  scopes: string;
+  jti: string;
+  sub: Tokens;
+  exp: number;
+  ipRestrictions?: string;
+  referrerRestrictions?: string;
+}
 export const verifyToken = (
   token: string,
-  subject: string
-): Promise<TokenResponse> =>
+  subject: Tokens
+): Promise<TokenResponse | ApiKeyResponse> =>
   new Promise((resolve, reject) => {
     verify(token, JWT_SECRET, { subject }, (error, data) => {
       if (error) return reject(error);
-      resolve(data as TokenResponse);
+      resolve(data as TokenResponse | ApiKeyResponse);
     });
   });
 
@@ -91,6 +115,44 @@ export const twoFactorToken = (user: User) =>
   generateToken({ id: user.id }, TOKEN_EXPIRY_LOGIN, Tokens.TWO_FACTOR);
 
 /**
+ * Generate an API key JWT
+ */
+export const apiKeyToken = (apiKey: ApiKey) => {
+  const createApiKey = { ...removeFalsyValues(apiKey) };
+  delete createApiKey.createdAt;
+  delete createApiKey.jwtApiKey;
+  delete createApiKey.updatedAt;
+  delete createApiKey.name;
+  delete createApiKey.description;
+  delete createApiKey.expiresAt;
+  return generateToken(
+    createApiKey,
+    (apiKey.expiresAt ? apiKey.expiresAt.getTime() : TOKEN_EXPIRY_API_KEY_MAX) -
+      new Date().getTime(),
+    Tokens.API_KEY
+  );
+};
+/**
+ * Generate an access token
+ */
+export const accessToken = (accessToken: AccessToken) => {
+  const createAccessToken = { ...removeFalsyValues(accessToken) };
+  delete createAccessToken.createdAt;
+  delete createAccessToken.jwtAccessToken;
+  delete createAccessToken.updatedAt;
+  delete createAccessToken.name;
+  delete createAccessToken.description;
+  delete createAccessToken.expiresAt;
+  return generateToken(
+    createAccessToken,
+    (accessToken.expiresAt
+      ? accessToken.expiresAt.getTime()
+      : TOKEN_EXPIRY_API_KEY_MAX) - new Date().getTime(),
+    Tokens.ACCESS_TOKEN
+  );
+};
+
+/**
  * Generate a new approve location JWT
  */
 export const approveLocationToken = (id: number, ipAddress: string) =>
@@ -106,8 +168,23 @@ export const approveLocationToken = (id: number, ipAddress: string) =>
 export const refreshToken = (id: number) =>
   generateToken({ id }, TOKEN_EXPIRY_REFRESH, Tokens.REFRESH);
 
-export const postLoginTokens = async (user: User) => {
+export const postLoginTokens = async (
+  user: User,
+  locals: Locals,
+  refreshTokenString?: string
+) => {
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
+  const refresh = await refreshToken(user.id);
+  if (!refreshTokenString) {
+    await createSession({
+      userId: user.id,
+      jwtToken: refresh,
+      ipAddress: locals.ipAddress || "unknown-ip-address",
+      userAgent: locals.userAgent || "unknown-user-agent"
+    });
+  } else {
+    await updateSessionByJwt(user.id, refreshTokenString, {});
+  }
   return {
     token: await loginToken(
       deleteSensitiveInfoUser({
@@ -115,19 +192,25 @@ export const postLoginTokens = async (user: User) => {
         email: await getUserBestEmail(user.id)
       })
     ),
-    refresh: await refreshToken(user.id)
+    refresh: !refreshTokenString ? refresh : undefined
   };
 };
 
+export interface LoginResponse {
+  twoFactorToken?: string;
+  token?: string;
+  refresh?: string;
+  [index: string]: string | undefined;
+}
 /**
  * Get the token response after logging in a user
  */
 export const getLoginResponse = async (
   user: User,
-  type?: EventType,
-  strategy?: string,
-  locals?: Locals
-) => {
+  type: EventType,
+  strategy: string,
+  locals: Locals
+): Promise<LoginResponse> => {
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   const verifiedEmails = await getUserVerifiedEmails(user);
   if (!verifiedEmails.length) throw new Error(ErrorCode.UNVERIFIED_EMAIL);
@@ -148,18 +231,65 @@ export const getLoginResponse = async (
       throw new Error(ErrorCode.UNAPPROVED_LOCATION);
     }
   }
-  if (type && strategy && locals)
-    await createEvent(
-      {
-        userId: user.id,
-        type,
-        data: { strategy }
-      },
-      locals
-    );
   if (user.twoFactorEnabled)
     return {
       twoFactorToken: await twoFactorToken(user)
     };
-  return await postLoginTokens(user);
+  return await postLoginTokens(user, locals);
+};
+
+const client = createHandyClient({
+  url: REDIS_URL
+});
+
+/**
+ * Check if a token is invalidated in Redis
+ * @param token - JWT
+ */
+export const checkInvalidatedToken = async (token: string) => {
+  const details = decode(token);
+  if (
+    details &&
+    typeof details === "object" &&
+    details.jti &&
+    (await client.get(`${JWT_ISSUER}-revoke-${details.sub}-${details.jti}`))
+  )
+    throw new Error(ErrorCode.REVOKED_TOKEN);
+};
+
+/**
+ * Invalidate a JWT using Redis
+ * @param token - JWT
+ */
+export const invalidateToken = async (token: string) => {
+  const details = decode(token);
+  if (details && typeof details === "object" && details.jti)
+    client.set(
+      `${JWT_ISSUER}-revoke-${details.sub}-${details.jti}`,
+      "1",
+      details.exp && [
+        "EX",
+        Math.floor((details.exp - new Date().getTime()) / 1000)
+      ]
+    );
+};
+
+export const checkIpRestrictions = (apiKey: ApiKeyResponse, locals: Locals) => {
+  if (!apiKey.ipRestrictions) return;
+  if (
+    !ipRangeCheck(
+      locals.ipAddress,
+      apiKey.ipRestrictions.split(",").map(range => range.trim())
+    )
+  )
+    throw new Error(ErrorCode.IP_RANGE_CHECK_FAIL);
+};
+
+export const checkReferrerRestrictions = (
+  apiKey: ApiKeyResponse,
+  domain: string
+) => {
+  if (!apiKey.referrerRestrictions || !domain) return;
+  if (!includesDomainInCommaList(apiKey.referrerRestrictions, domain))
+    throw new Error(ErrorCode.REFERRER_CHECK_FAIL);
 };

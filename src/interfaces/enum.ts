@@ -12,11 +12,6 @@ export enum UserRole {
   ADMIN = 3
 }
 
-export enum ApiKeyAccess {
-  READONLY = 0,
-  FULL_ACCESS = 1
-}
-
 export enum NotificationEmails {
   SECURITY = 0,
   ACCOUNT = 1,
@@ -55,7 +50,9 @@ export enum EventType {
 export enum ErrorCode {
   NOT_FOUND = "404/not-found",
   MISSING_TOKEN = "422/missing-token",
+  REVOKED_TOKEN = "401/revoked-token",
   INVALID_TOKEN = "401/invalid-token",
+  EXPIRED_TOKEN = "401/expired-token",
   MISSING_PRIMARY_EMAIL = "422/missing-primary-email",
   MISSING_PASSWORD = "422/missing-password",
   MISSING_FIELD = "422/missing-field",
@@ -69,9 +66,9 @@ export enum ErrorCode {
   INVOICE_NOT_FOUND = "404/invoice-not-found",
   INVALID_LOGIN = "401/invalid-login",
   INCORRECT_PASSWORD = "401/incorrect-password",
-  INSUFFICIENT_PERMISSION = "401/insufficient-permission",
+  INSUFFICIENT_PERMISSION = "403/insufficient-permission",
   DEFAULT = "500/server-error",
-  EMAIL_CANNOT_DELETE = "400/email.cannotDelete",
+  EMAIL_CANNOT_DELETE = "400/cannot-delete-email",
   UNVERIFIED_EMAIL = "401/unverified-email",
   GOOGLE_AUTH_ERROR = "401/google-auth-error",
   UNAPPROVED_LOCATION = "401/unapproved-location",
@@ -86,7 +83,12 @@ export enum ErrorCode {
   INVALID_API_KEY_SECRET = "401/invalid-api-key-secret",
   IP_RANGE_CHECK_FAIL = "401/ip-range-check-fail",
   REFERRER_CHECK_FAIL = "401/referrer-check-fail",
-  DISPOSABLE_EMAIL = "422/disposable-email"
+  DISPOSABLE_EMAIL = "422/disposable-email",
+  DOMAIN_UNABLE_TO_VERIFY = "400/domain-unable-to-verify",
+  DOMAIN_MISSING_FILE = "400/domain-missing-file",
+  DOMAIN_MISSING_DNS = "400/domain-missing-dns",
+  DOMAIN_ALREADY_VERIFIED = "400/domain-already-verified",
+  CANNOT_INVITE_DOMAIN = "400/cannot-invite-domain"
 }
 
 export enum Templates {
@@ -98,6 +100,8 @@ export enum Templates {
 
 export enum Tokens {
   LOGIN = "auth",
+  API_KEY = "api-key",
+  ACCESS_TOKEN = "access-token",
   TWO_FACTOR = "2fa",
   REFRESH = "refresh",
   PASSWORD_RESET = "password-reset",
@@ -111,10 +115,9 @@ export enum CacheCategories {
   USER_MEMBERSHIPS = "user-memberships",
   MEMBERSHIP = "membership",
   ORGANIZATION = "organization",
+  USER_USERNAME = "user-username",
   ORGANIZATION_USERNAME = "organization-username",
-  IP_LOOKUP = "ip-lookup",
-  API_KEY = "api-key",
-  API_KEY_ORG = "api-key-org"
+  IP_LOOKUP = "ip-lookup"
 }
 
 export enum Authorizations {
@@ -143,4 +146,49 @@ export enum NotificationCategories {
 
 export enum ApiAuthorizations {
   EXAMPLE = "example"
+}
+
+export enum UserScopes {
+  READ_USER = "user:read",
+  UPDATE_USER = "user:update",
+  CHANGE_PASSWORD = "user:change-password",
+  DELETE_USER = "user:delete",
+  READ_USER_MEMBERSHIPS = "user:memberships:read",
+  ENABLE_USER_2FA = "user:2fa:enable",
+  DISABLE_USER_2FA = "user:2fa:disable",
+  READ_USER_BACKUP_CODES = "user:backup-codes:read",
+  REGENERATE_USER_BACKUP_CODES = "user:backup-codes:regenerate",
+  CREATE_USER_ACCESS_TOKENS = "user:access-tokens:create",
+  READ_USER_ACCESS_TOKENS = "user:access-tokens:read",
+  UPDATE_USER_ACCESS_TOKENS = "user:access-tokens:update",
+  DELETE_USER_ACCESS_TOKENS = "user:access-tokens:delete",
+  CREATE_USER_EMAILS = "user:emails:create",
+  READ_USER_EMAILS = "user:emails:read",
+  DELETE_USER_EMAILS = "user:emails:delete",
+  RESEND_USER_EMAIL_VERIFICATION = "user:emails:resend-verification",
+  CREATE_USER_SESSION = "user:sessions:create",
+  READ_USER_SESSION = "user:sessions:read",
+  DELETE_USER_SESSION = "user:sessions:delete"
+}
+
+export enum Webhooks {
+  ALL_EVENTS = "*",
+  UPDATE_ORGANIZATION = "update-organization",
+  DELETE_ORGANIZATION = "delete-organization",
+  UPDATE_ORGANIZATION_BILLING = "update-organization-billing",
+  UPDATE_ORGANIZATION_SUBSCRIPTION = "update-organization-subscription",
+  CREATE_ORGANIZATION_SUBSCRIPTION = "create-organization-subscription",
+  DELETE_ORGANIZATION_SOURCE = "delete-organization-source",
+  UPDATE_ORGANIZATION_SOURCE = "update-organization-source",
+  CREATE_ORGANIZATION_SOURCE = "create-organization-source",
+  UPDATE_API_KEY = "update-api-key",
+  CREATE_API_KEY = "create-api-key",
+  DELETE_API_KEY = "delete-api-key",
+  UPDATE_DOMAIN = "update-domain",
+  CREATE_DOMAIN = "create-domain",
+  DELETE_DOMAIN = "delete-domain",
+  VERIFY_DOMAIN = "verify-domain",
+  UPDATE_WEBHOOK = "update-webhook",
+  CREATE_WEBHOOK = "create-webhook",
+  DELETE_WEBHOOK = "delete-webhook"
 }

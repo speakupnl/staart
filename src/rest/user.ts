@@ -1,4 +1,4 @@
-import { ErrorCode, EventType, Authorizations } from "../interfaces/enum";
+import { ErrorCode, EventType, UserScopes } from "../interfaces/enum";
 import {
   getUser,
   updateUser,
@@ -7,7 +7,16 @@ import {
   deleteAllUserApprovedLocations,
   createBackupCodes,
   deleteUserBackupCodes,
-  getUserBackupCodes
+  getUserBackupCodes,
+  getUserAccessTokens,
+  getAccessToken,
+  updateAccessToken,
+  createAccessToken,
+  deleteAccessToken,
+  getUserSessions,
+  getSession,
+  createSession,
+  deleteSession
 } from "../crud/user";
 import {
   deleteAllUserMemberships,
@@ -28,7 +37,7 @@ import { getPaginatedData } from "../crud/data";
 import { addLocationToEvents } from "../helpers/location";
 
 export const getUserFromId = async (userId: number, tokenUserId: number) => {
-  if (await can(tokenUserId, Authorizations.READ, "user", userId))
+  if (await can(tokenUserId, UserScopes.READ_USER, "user", userId))
     return getUser(userId);
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };
@@ -40,7 +49,7 @@ export const updateUserForUser = async (
   locals: Locals
 ) => {
   delete data.password;
-  if (await can(tokenUserId, Authorizations.UPDATE, "user", updateUserId)) {
+  if (await can(tokenUserId, UserScopes.UPDATE_USER, "user", updateUserId)) {
     await updateUser(updateUserId, data);
     await createEvent(
       {
@@ -63,7 +72,7 @@ export const updatePasswordForUser = async (
   locals: Locals
 ) => {
   if (
-    await can(tokenUserId, Authorizations.UPDATE_SECURE, "user", updateUserId)
+    await can(tokenUserId, UserScopes.CHANGE_PASSWORD, "user", updateUserId)
   ) {
     const user = await getUser(updateUserId, true);
     if (!user.password) throw new Error(ErrorCode.MISSING_PASSWORD);
@@ -88,7 +97,7 @@ export const deleteUserForUser = async (
   updateUserId: number,
   locals: Locals
 ) => {
-  if (await can(tokenUserId, Authorizations.DELETE, "user", updateUserId)) {
+  if (await can(tokenUserId, UserScopes.DELETE_USER, "user", updateUserId)) {
     await deleteAllUserEmails(updateUserId);
     await deleteAllUserMemberships(updateUserId);
     await deleteAllUserApprovedLocations(updateUserId);
@@ -112,7 +121,7 @@ export const getRecentEventsForUser = async (
   dataUserId: number,
   query: KeyValue
 ) => {
-  if (await can(tokenUserId, Authorizations.READ_SECURE, "user", dataUserId)) {
+  if (await can(tokenUserId, UserScopes.READ_USER, "user", dataUserId)) {
     const events = await getPaginatedData({
       table: "events",
       conditions: { userId: dataUserId },
@@ -129,7 +138,9 @@ export const getMembershipsForUser = async (
   dataUserId: number,
   query: KeyValue
 ) => {
-  if (await can(tokenUserId, Authorizations.READ, "user", dataUserId)) {
+  if (
+    await can(tokenUserId, UserScopes.READ_USER_MEMBERSHIPS, "user", dataUserId)
+  ) {
     const memberships = await getPaginatedData({
       table: "memberships",
       conditions: { userId: dataUserId },
@@ -145,7 +156,8 @@ export const getAllDataForUser = async (
   tokenUserId: number,
   userId: number
 ) => {
-  if (!(await can(tokenUserId, Authorizations.READ_SECURE, "user", userId)))
+  // Rethink this permission
+  if (!(await can(tokenUserId, UserScopes.READ_USER, "user", userId)))
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   const user = await getUser(userId);
   const memberships = await getUserMembershipsDetailed(userId);
@@ -159,7 +171,7 @@ export const getNotificationsForUser = async (
   tokenUserId: number,
   dataUserId: number
 ) => {
-  if (await can(tokenUserId, Authorizations.READ, "user", dataUserId))
+  if (await can(tokenUserId, UserScopes.READ_USER, "user", dataUserId))
     return await getUserNotifications(dataUserId);
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };
@@ -170,13 +182,13 @@ export const updateNotificationForUser = async (
   notificationId: number,
   data: KeyValue
 ) => {
-  if (await can(tokenUserId, Authorizations.UPDATE, "user", dataUserId))
+  if (await can(tokenUserId, UserScopes.UPDATE_USER, "user", dataUserId))
     return await updateNotification(notificationId, data);
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };
 
 export const enable2FAForUser = async (tokenUserId: number, userId: number) => {
-  if (!(await can(tokenUserId, Authorizations.UPDATE_SECURE, "user", userId)))
+  if (!(await can(tokenUserId, UserScopes.ENABLE_USER_2FA, "user", userId)))
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   const secret = authenticator.generateSecret();
   await updateUser(userId, { twoFactorSecret: secret });
@@ -190,7 +202,7 @@ export const verify2FAForUser = async (
   userId: number,
   verificationCode: number
 ) => {
-  if (!(await can(tokenUserId, Authorizations.UPDATE_SECURE, "user", userId)))
+  if (!(await can(tokenUserId, UserScopes.ENABLE_USER_2FA, "user", userId)))
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   const secret = (await getUser(userId, true)).twoFactorSecret as string;
   if (!secret) throw new Error(ErrorCode.NOT_ENABLED_2FA);
@@ -204,7 +216,7 @@ export const disable2FAForUser = async (
   tokenUserId: number,
   userId: number
 ) => {
-  if (!(await can(tokenUserId, Authorizations.UPDATE_SECURE, "user", userId)))
+  if (!(await can(tokenUserId, UserScopes.DISABLE_USER_2FA, "user", userId)))
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   await deleteUserBackupCodes(userId);
   await updateUser(userId, { twoFactorEnabled: false, twoFactorSecret: "" });
@@ -214,7 +226,9 @@ export const getBackupCodesForUser = async (
   tokenUserId: number,
   userId: number
 ) => {
-  if (!(await can(tokenUserId, Authorizations.READ_SECURE, "user", userId)))
+  if (
+    !(await can(tokenUserId, UserScopes.READ_USER_BACKUP_CODES, "user", userId))
+  )
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   return await getUserBackupCodes(userId);
 };
@@ -223,9 +237,119 @@ export const regenerateBackupCodesForUser = async (
   tokenUserId: number,
   userId: number
 ) => {
-  if (!(await can(tokenUserId, Authorizations.READ_SECURE, "user", userId)))
+  if (
+    !(await can(
+      tokenUserId,
+      UserScopes.REGENERATE_USER_BACKUP_CODES,
+      "user",
+      userId
+    ))
+  )
     throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   await deleteUserBackupCodes(userId);
   await createBackupCodes(userId, 10);
   return await getUserBackupCodes(userId);
+};
+
+export const getUserAccessTokensForUser = async (
+  tokenUserId: number,
+  userId: number,
+  query: KeyValue
+) => {
+  if (
+    await can(tokenUserId, UserScopes.READ_USER_ACCESS_TOKENS, "user", userId)
+  )
+    return await getUserAccessTokens(userId, query);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getUserAccessTokenForUser = async (
+  tokenUserId: number,
+  userId: number,
+  accessTokenId: number
+) => {
+  if (
+    await can(tokenUserId, UserScopes.READ_USER_ACCESS_TOKENS, "user", userId)
+  )
+    return await getAccessToken(userId, accessTokenId);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const updateAccessTokenForUser = async (
+  tokenUserId: number,
+  userId: number,
+  accessTokenId: number,
+  data: KeyValue,
+  locals: Locals
+) => {
+  if (
+    await can(tokenUserId, UserScopes.UPDATE_USER_ACCESS_TOKENS, "user", userId)
+  ) {
+    await updateAccessToken(userId, accessTokenId, data);
+    return;
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const createAccessTokenForUser = async (
+  tokenUserId: number,
+  userId: number,
+  accessToken: KeyValue,
+  locals: Locals
+) => {
+  if (
+    await can(tokenUserId, UserScopes.CREATE_USER_ACCESS_TOKENS, "user", userId)
+  ) {
+    const key = await createAccessToken({ userId, ...accessToken });
+    return;
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const deleteAccessTokenForUser = async (
+  tokenUserId: number,
+  userId: number,
+  accessTokenId: number,
+  locals: Locals
+) => {
+  if (
+    await can(tokenUserId, UserScopes.DELETE_USER_ACCESS_TOKENS, "user", userId)
+  ) {
+    await deleteAccessToken(userId, accessTokenId);
+    return;
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getUserSessionsForUser = async (
+  tokenUserId: number,
+  userId: number,
+  query: KeyValue
+) => {
+  if (await can(tokenUserId, UserScopes.READ_USER_SESSION, "user", userId))
+    return await getUserSessions(userId, query);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getUserSessionForUser = async (
+  tokenUserId: number,
+  userId: number,
+  sessionId: number
+) => {
+  if (await can(tokenUserId, UserScopes.READ_USER_SESSION, "user", userId))
+    return await getSession(userId, sessionId);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const deleteSessionForUser = async (
+  tokenUserId: number,
+  userId: number,
+  sessionId: number,
+  locals: Locals
+) => {
+  if (await can(tokenUserId, UserScopes.DELETE_USER_SESSION, "user", userId)) {
+    await deleteSession(userId, sessionId);
+    return;
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };

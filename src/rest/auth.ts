@@ -14,14 +14,17 @@ import {
   createEmail,
   updateEmail,
   getEmail,
-  checkIfNewEmail
+  checkIfNewEmail,
+  getUserEmails
 } from "../crud/email";
 import { mail, checkIfDisposableEmail } from "../helpers/mail";
 import {
   verifyToken,
   passwordResetToken,
   getLoginResponse,
-  postLoginTokens
+  postLoginTokens,
+  TokenResponse,
+  checkInvalidatedToken
 } from "../helpers/jwt";
 import { KeyValue, Locals } from "../interfaces/general";
 import { createEvent } from "../crud/event";
@@ -35,11 +38,6 @@ import {
 } from "../interfaces/enum";
 import { compare } from "bcryptjs";
 import { createMembership } from "../crud/membership";
-import {
-  googleGetConnectionUrl,
-  googleGetTokensFromCode,
-  googleGetEmailFromToken
-} from "../helpers/google";
 import { can } from "../helpers/authorization";
 import { authenticator } from "otplib";
 import ClientOAuth2 from "client-oauth2";
@@ -47,8 +45,6 @@ import {
   BASE_URL,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
   FACEBOOK_CLIENT_ID,
   FACEBOOK_CLIENT_SECRET,
   SALESFORCE_CLIENT_ID,
@@ -60,10 +56,11 @@ import { GitHubEmail } from "../interfaces/oauth";
 import { createSlug } from "../helpers/utils";
 
 export const validateRefreshToken = async (token: string, locals: Locals) => {
+  await checkInvalidatedToken(token);
   const data = <User>await verifyToken(token, Tokens.REFRESH);
   if (!data.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   const user = await getUser(data.id);
-  return await postLoginTokens(user);
+  return await postLoginTokens(user, locals, token);
 };
 
 export const login = async (
@@ -87,18 +84,18 @@ export const login2FA = async (code: number, token: string, locals: Locals) => {
   if (!secret) throw new Error(ErrorCode.NOT_ENABLED_2FA);
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   if (authenticator.check(code.toString(), secret))
-    return await postLoginTokens(user);
+    return await postLoginTokens(user, locals);
   const backupCode = await getUserBackupCode(data.id, code);
   if (backupCode && !backupCode.used) {
     await updateBackupCode(backupCode.code, { used: true });
-    return await postLoginTokens(user);
+    return await postLoginTokens(user, locals);
   }
   throw new Error(ErrorCode.INVALID_2FA_TOKEN);
 };
 
 export const register = async (
   user: User,
-  locals: Locals,
+  locals?: Locals,
   email?: string,
   organizationId?: number,
   role?: MembershipRole,
@@ -118,7 +115,8 @@ export const register = async (
     const newEmail = <InsertResult>await createEmail(
       {
         userId,
-        email
+        email,
+        isVerified: !!emailVerified
       },
       !emailVerified,
       !user.password
@@ -133,7 +131,7 @@ export const register = async (
       role
     });
   }
-  await addApprovedLocation(userId, locals.ipAddress);
+  if (locals) await addApprovedLocation(userId, locals.ipAddress);
   return { created: true, userId };
 };
 
@@ -154,8 +152,11 @@ export const sendPasswordReset = async (email: string, locals?: Locals) => {
   return;
 };
 
-export const sendNewPassword = async (email: string) => {
-  const user = await getUserByEmail(email);
+export const sendNewPassword = async (userId: number, email: string) => {
+  const user = await getUser(userId);
+  const userEmails = await getUserEmails(userId);
+  if (!userEmails.filter(userEmail => userEmail.email === email).length)
+    throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   const token = await passwordResetToken(user.id);
   await mail(email, Templates.NEW_PASSWORD, { name: user.name, token });
@@ -193,20 +194,10 @@ export const updatePassword = async (
   return;
 };
 
-export const loginWithGoogleLink = () => googleGetConnectionUrl();
-
-export const loginWithGoogleVerify = async (code: string, locals: Locals) => {
-  const data = await googleGetTokensFromCode(code);
-  const email = await googleGetEmailFromToken(data);
-  if (!email) throw new Error(ErrorCode.USER_NOT_FOUND);
-  const user = await getUserByEmail(email);
-  if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
-  return await getLoginResponse(user, EventType.AUTH_LOGIN, "google", locals);
-};
-
 export const impersonate = async (
   tokenUserId: number,
-  impersonateUserId: number
+  impersonateUserId: number,
+  locals: Locals
 ) => {
   if (
     await can(
@@ -216,12 +207,20 @@ export const impersonate = async (
       impersonateUserId
     )
   )
-    return await getLoginResponse(await getUser(impersonateUserId));
+    return await getLoginResponse(
+      await getUser(impersonateUserId),
+      EventType.AUTH_LOGIN,
+      "impersonate",
+      locals
+    );
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };
 
 export const approveLocation = async (token: string, locals: Locals) => {
-  const tokenUser = await verifyToken(token, Tokens.APPROVE_LOCATION);
+  const tokenUser = (await verifyToken(
+    token,
+    Tokens.APPROVE_LOCATION
+  )) as TokenResponse;
   if (!tokenUser.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   const user = await getUser(tokenUser.id);
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);

@@ -3,11 +3,12 @@ import {
   NotificationEmails,
   Genders,
   NotificationCategories,
-  ApiKeyAccess
+  Tokens
 } from "../enum";
+import { IdRow, Row } from "../general";
+import { GeoLocation } from "../../helpers/location";
 
-export interface User {
-  id?: number;
+export interface User extends IdRow {
   name: string;
   username?: string;
   nickname?: string;
@@ -24,8 +25,6 @@ export interface User {
   gender?: Genders;
   role?: UserRole;
   profilePicture?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
 
   // email is only used for JWT
   email?: string;
@@ -38,24 +37,41 @@ export interface ApprovedLocation {
   createdAt?: Date;
 }
 
-export interface ApiKey {
-  apiKey?: string;
-  secretKey?: string;
-  apiRestrictions?: string;
-  organizationId: number;
-  ipRestrictions?: string;
-  referrerRestrictions?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface Notification {
-  id?: number;
+export interface Notification extends IdRow {
   userId: number;
   category: NotificationCategories;
   text: string;
   link: string;
   read?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+}
+
+export interface BackupCode extends Row {
+  code: number;
+  userId: number;
+  used?: boolean;
+}
+
+export interface AccessToken extends IdRow {
+  name?: string;
+  description?: string;
+  jwtAccessToken?: string;
+  scopes?: string;
+  userId: number;
+  expiresAt?: Date;
+}
+export interface AccessTokenResponse {
+  id: number;
+  userId: number;
+  scopes: string;
+  jti: string;
+  sub: Tokens;
+  exp: number;
+}
+
+export interface Session extends IdRow {
+  userId: number;
+  jwtToken: string;
+  ipAddress: string;
+  userAgent: string;
+  location?: GeoLocation;
 }

@@ -9,10 +9,12 @@ import {
   getMembershipDetailed,
   updateMembership
 } from "../crud/membership";
-import { User, ApiKey } from "../interfaces/tables/user";
+import { User } from "../interfaces/tables/user";
 import { register } from "./auth";
 import { can } from "../helpers/authorization";
 import { Locals, KeyValue } from "../interfaces/general";
+import { ApiKeyResponse } from "../helpers/jwt";
+import { getOrganization, getDomainByDomainName } from "../crud/organization";
 
 export const getMembershipDetailsForUser = async (
   userId: number,
@@ -24,7 +26,7 @@ export const getMembershipDetailsForUser = async (
 };
 
 export const inviteMemberToOrganization = async (
-  userId: number | ApiKey,
+  userId: number | ApiKeyResponse,
   organizationId: number,
   newMemberName: string,
   newMemberEmail: string,
@@ -39,6 +41,17 @@ export const inviteMemberToOrganization = async (
       organizationId
     )
   ) {
+    const organization = await getOrganization(organizationId);
+    if (organization.onlyAllowDomain) {
+      const emailDomain = newMemberEmail.split("@")[1];
+      try {
+        const domainDetails = await getDomainByDomainName(emailDomain);
+        if (!domainDetails || domainDetails.organizationId != organizationId)
+          throw new Error();
+      } catch (error) {
+        throw new Error(ErrorCode.CANNOT_INVITE_DOMAIN);
+      }
+    }
     let newUser: User;
     let userExists = false;
     try {
@@ -50,8 +63,10 @@ export const inviteMemberToOrganization = async (
       if (!newUser.id) throw new Error(ErrorCode.USER_NOT_FOUND);
       let isMemberAlready = false;
       try {
-        await getUserOrganizationMembership(newUser.id, organizationId);
-        isMemberAlready = true;
+        isMemberAlready = !!(await getUserOrganizationMembership(
+          newUser.id,
+          organizationId
+        ));
       } catch (error) {}
       if (isMemberAlready) throw new Error(ErrorCode.USER_IS_MEMBER_ALREADY);
       await createMembership({ userId: newUser.id, organizationId, role });
@@ -71,7 +86,7 @@ export const inviteMemberToOrganization = async (
 };
 
 export const deleteMembershipForUser = async (
-  tokenUserId: number | ApiKey,
+  tokenUserId: number | ApiKeyResponse,
   membershipId: number,
   locals: Locals
 ) => {
@@ -96,7 +111,7 @@ export const deleteMembershipForUser = async (
 };
 
 export const updateMembershipForUser = async (
-  userId: number | ApiKey,
+  userId: number | ApiKeyResponse,
   membershipId: number,
   data: KeyValue,
   locals: Locals

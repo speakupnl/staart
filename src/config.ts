@@ -44,6 +44,8 @@ export const DB_USERNAME = process.env.DB_USERNAME || "root";
 export const DB_PASSWORD = process.env.DB_PASSWORD || "";
 export const DB_DATABASE = process.env.DB_DATABASE || "database";
 export const DB_TABLE_PREFIX = process.env.DB_TABLE_PREFIX || "";
+// [redis:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]
+export const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 
 // Caching
 export const CACHE_TTL = process.env.CACHE_TTL
@@ -70,16 +72,23 @@ export const TOKEN_EXPIRY_EMAIL_VERIFICATION =
   process.env.TOKEN_EXPIRY_EMAIL_VERIFICATION || "7d";
 export const TOKEN_EXPIRY_PASSWORD_RESET =
   process.env.TOKEN_EXPIRY_PASSWORD_RESET || "1d";
-export const TOKEN_EXPIRY_LOGIN = process.env.TOKEN_EXPIRY_LOGIN || "1d";
+export const TOKEN_EXPIRY_LOGIN = process.env.TOKEN_EXPIRY_LOGIN || "15m";
 export const TOKEN_EXPIRY_APPROVE_LOCATION =
   process.env.TOKEN_EXPIRY_APPROVE_LOCATION || "10m";
 export const TOKEN_EXPIRY_REFRESH = process.env.TOKEN_EXPIRY_REFRESH || "30d";
+export const TOKEN_EXPIRY_API_KEY_MAX = process.env.TOKEN_EXPIRY_API_KEY_MAX
+  ? parseInt(process.env.TOKEN_EXPIRY_API_KEY_MAX)
+  : 10413685800000; // 2299-12-31 is the default maximum expiry (also what Microsoft uses)
+export const DISALLOW_OPEN_CORS = !!process.env.DISALLOW_OPEN_CORS;
 
 // OAuth2 credentials
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "";
 export const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "";
+export const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID || "";
+export const MICROSOFT_CLIENT_SECRET =
+  process.env.MICROSOFT_CLIENT_SECRET || "";
 export const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID || "";
 export const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET || "";
 export const SALESFORCE_CLIENT_ID = process.env.SALESFORCE_CLIENT_ID || "";

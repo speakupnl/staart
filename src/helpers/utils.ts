@@ -1,10 +1,15 @@
 import anonymize from "ip-anonymize";
-import { User, ApiKey } from "../interfaces/tables/user";
+import { User } from "../interfaces/tables/user";
+import dns from "dns";
 import Joi from "@hapi/joi";
 import { getOrganizationIdFromUsername } from "../crud/organization";
 import { Request, Response } from "express";
 import slugify from "slugify";
 import cryptoRandomString from "crypto-random-string";
+import { Tokens } from "../interfaces/enum";
+import { ApiKeyResponse } from "./jwt";
+import { isMatch } from "matcher";
+import { getUserIdFromUsername } from "../crud/user";
 
 /**
  * Capitalize each first letter in a string
@@ -64,9 +69,19 @@ export const organizationUsernameToId = async (id: string) => {
   }
 };
 
+export const userUsernameToId = async (id: string, tokenUserId: number) => {
+  if (id === "me") {
+    return tokenUserId;
+  } else if (isNaN(Number(id))) {
+    return await getUserIdFromUsername(id);
+  } else {
+    return parseInt(id);
+  }
+};
+
 export const localsToTokenOrKey = (res: Response) => {
-  if (res.locals.token.type === "apiKey") {
-    return res.locals.token.apiKey as ApiKey;
+  if (res.locals.token.sub == Tokens.API_KEY) {
+    return res.locals.token as ApiKeyResponse;
   }
   return res.locals.token.id as number;
 };
@@ -74,7 +89,7 @@ export const localsToTokenOrKey = (res: Response) => {
 export const createSlug = (name: string) =>
   `${slugify(name, {
     lower: true
-  }).replace(/'|"/g, "")}-${cryptoRandomString({ length: 5, type: "hex" })}`;
+  }).replace(/'|"/g, "")}-${cryptoRandomString({ length: 5 })}`;
 
 export const safeRedirect = (req: Request, res: Response, url: string) => {
   if (req.get("X-Requested-With") === "XMLHttpRequest")
@@ -97,13 +112,22 @@ export const boolValues = [
   "prefersReducedMotion",
   "prefersColorSchemeDark",
   "used",
-  "isVerified"
+  "isVerified",
+  "forceTwoFactor",
+  "autoJoinDomain",
+  "onlyAllowDomain",
+  "isActive"
 ];
 
 /**
  * MySQL columns which are datetime values
  */
-export const dateValues = ["createdAt", "updatedAt"];
+export const dateValues = [
+  "createdAt",
+  "updatedAt",
+  "lastFiredAt",
+  "expiresAt"
+];
 
 /**
  * MySQL columns which are JSON values
@@ -116,8 +140,7 @@ export const jsonValues = ["data"];
 export const readOnlyValues = [
   "createdAt",
   "id",
-  "apiKey",
-  "secretKey",
+  "jwtApiKey",
   "userId",
   "organizationId"
 ];
@@ -128,3 +151,51 @@ export const joiValidate = (schemaMap: Joi.SchemaMap, data: any) => {
   if (result.error) throw new Error(`joi:${JSON.stringify(result.error)}`);
   return true;
 };
+
+export const removeFalsyValues = (value: any) => {
+  if (value && typeof value === "object") {
+    Object.keys(value).map(key => {
+      if (!value[key]) delete value[key];
+    });
+  }
+  return value;
+};
+
+export const includesDomainInCommaList = (commaList: string, value: string) => {
+  const list = commaList.split(",").map(item => item.trim());
+  let includes = false;
+  list.forEach(item => {
+    if (item === value || isMatch(value, `*.${item}`)) includes = true;
+  });
+  return includes;
+};
+
+export const dnsResolve = (
+  hostname: string,
+  recordType:
+    | "A"
+    | "AAAA"
+    | "ANY"
+    | "CNAME"
+    | "MX"
+    | "NAPTR"
+    | "NS"
+    | "PTR"
+    | "SOA"
+    | "SRV"
+    | "TXT"
+): Promise<
+  | string[]
+  | dns.MxRecord[]
+  | dns.NaptrRecord[]
+  | dns.SoaRecord
+  | dns.SrvRecord[]
+  | string[][]
+  | dns.AnyRecord[]
+> =>
+  new Promise((resolve, reject) => {
+    dns.resolve(hostname, recordType, (error, records) => {
+      if (error) return reject(error);
+      resolve(records);
+    });
+  });
