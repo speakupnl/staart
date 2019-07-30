@@ -11,17 +11,17 @@
  Target Server Version : 100221
  File Encoding         : 65001
 
- Date: 28/07/2019 18:12:07
+ Date: 30/07/2019 18:00:09
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for staart-access-tokens
+-- Table structure for speakup-access-tokens
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-access-tokens`;
-CREATE TABLE `staart-access-tokens` (
+DROP TABLE IF EXISTS `speakup-access-tokens`;
+CREATE TABLE `speakup-access-tokens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` int(11) NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
@@ -35,10 +35,10 @@ CREATE TABLE `staart-access-tokens` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-api-keys
+-- Table structure for speakup-api-keys
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-api-keys`;
-CREATE TABLE `staart-api-keys` (
+DROP TABLE IF EXISTS `speakup-api-keys`;
+CREATE TABLE `speakup-api-keys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
   `description` text COLLATE utf8mb4_bin DEFAULT NULL,
@@ -54,10 +54,10 @@ CREATE TABLE `staart-api-keys` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-approved-locations
+-- Table structure for speakup-approved-locations
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-approved-locations`;
-CREATE TABLE `staart-approved-locations` (
+DROP TABLE IF EXISTS `speakup-approved-locations`;
+CREATE TABLE `speakup-approved-locations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` int(11) NOT NULL,
   `subnet` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -66,10 +66,10 @@ CREATE TABLE `staart-approved-locations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-backup-codes
+-- Table structure for speakup-backup-codes
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-backup-codes`;
-CREATE TABLE `staart-backup-codes` (
+DROP TABLE IF EXISTS `speakup-backup-codes`;
+CREATE TABLE `speakup-backup-codes` (
   `code` int(6) NOT NULL,
   `userId` int(11) NOT NULL,
   `used` int(1) NOT NULL DEFAULT 0,
@@ -80,10 +80,10 @@ CREATE TABLE `staart-backup-codes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-domains
+-- Table structure for speakup-domains
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-domains`;
-CREATE TABLE `staart-domains` (
+DROP TABLE IF EXISTS `speakup-domains`;
+CREATE TABLE `speakup-domains` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organizationId` int(11) NOT NULL,
   `domain` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -95,10 +95,10 @@ CREATE TABLE `staart-domains` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-emails
+-- Table structure for speakup-emails
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-emails`;
-CREATE TABLE `staart-emails` (
+DROP TABLE IF EXISTS `speakup-emails`;
+CREATE TABLE `speakup-emails` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `userId` int(11) NOT NULL,
@@ -110,10 +110,10 @@ CREATE TABLE `staart-emails` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-events
+-- Table structure for speakup-events
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-events`;
-CREATE TABLE `staart-events` (
+DROP TABLE IF EXISTS `speakup-events`;
+CREATE TABLE `speakup-events` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` int(11) DEFAULT NULL,
   `organizationId` int(11) DEFAULT NULL,
@@ -126,10 +126,10 @@ CREATE TABLE `staart-events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-memberships
+-- Table structure for speakup-memberships
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-memberships`;
-CREATE TABLE `staart-memberships` (
+DROP TABLE IF EXISTS `speakup-memberships`;
+CREATE TABLE `speakup-memberships` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organizationId` int(11) NOT NULL,
   `userId` int(11) NOT NULL,
@@ -142,10 +142,10 @@ CREATE TABLE `staart-memberships` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-notifications
+-- Table structure for speakup-notifications
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-notifications`;
-CREATE TABLE `staart-notifications` (
+DROP TABLE IF EXISTS `speakup-notifications`;
+CREATE TABLE `speakup-notifications` (
   `id` int(12) NOT NULL AUTO_INCREMENT,
   `userId` int(12) NOT NULL,
   `category` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -158,10 +158,10 @@ CREATE TABLE `staart-notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-organizations
+-- Table structure for speakup-organizations
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-organizations`;
-CREATE TABLE `staart-organizations` (
+DROP TABLE IF EXISTS `speakup-organizations`;
+CREATE TABLE `speakup-organizations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
   `username` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -176,10 +176,10 @@ CREATE TABLE `staart-organizations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-sessions
+-- Table structure for speakup-sessions
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-sessions`;
-CREATE TABLE `staart-sessions` (
+DROP TABLE IF EXISTS `speakup-sessions`;
+CREATE TABLE `speakup-sessions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` int(11) NOT NULL,
   `jwtToken` text COLLATE utf8mb4_bin NOT NULL,
@@ -191,10 +191,10 @@ CREATE TABLE `staart-sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-users
+-- Table structure for speakup-users
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-users`;
-CREATE TABLE `staart-users` (
+DROP TABLE IF EXISTS `speakup-users`;
+CREATE TABLE `speakup-users` (
   `id` int(12) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `username` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -218,10 +218,10 @@ CREATE TABLE `staart-users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
--- Table structure for staart-webhooks
+-- Table structure for speakup-webhooks
 -- ----------------------------
-DROP TABLE IF EXISTS `staart-webhooks`;
-CREATE TABLE `staart-webhooks` (
+DROP TABLE IF EXISTS `speakup-webhooks`;
+CREATE TABLE `speakup-webhooks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organizationId` int(11) NOT NULL,
   `event` varchar(255) COLLATE utf8mb4_bin NOT NULL,
