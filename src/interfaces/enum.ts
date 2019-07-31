@@ -3,7 +3,7 @@ export enum MembershipRole {
   ADMIN = 2,
   MANAGER = 3,
   MEMBER = 4,
-  BASIC = 5
+  RESELLER = 5
 }
 
 export enum UserRole {
@@ -144,8 +144,38 @@ export enum NotificationCategories {
   JOINED_ORGANIZATION = "joined-organization"
 }
 
-export enum ApiAuthorizations {
-  EXAMPLE = "example"
+export enum OrgScopes {
+  READ_ORG = "org:read",
+  UPDATE_ORG = "org:update",
+  DELETE_ORG = "org:delete",
+  READ_ORG_BILLING = "org:billing:read",
+  UPDATE_ORG_BILLING = "org:billing:update",
+  READ_ORG_INVOICES = "org:invoices:read",
+  READ_ORG_SOURCES = "org:sources:read",
+  CREATE_ORG_SOURCES = "org:sources:create",
+  UPDATE_ORG_SOURCES = "org:sources:update",
+  DELETE_ORG_SOURCES = "org:sources:delete",
+  READ_ORG_SUBSCRIPTIONS = "org:subscriptions:read",
+  UPDATE_ORG_SUBSCRIPTIONS = "org:subscriptions:update",
+  CREATE_ORG_SUBSCRIPTIONS = "org:subscriptions:create",
+  READ_ORG_PLANS = "org:plans:read",
+  READ_ORG_API_KEYS = "org:api-key:read",
+  UPDATE_ORG_API_KEYS = "org:api-key:update",
+  DELETE_ORG_API_KEYS = "org:api-key:delete",
+  CREATE_ORG_API_KEYS = "org:api-key:create",
+  READ_ORG_DOMAINS = "org:domain:read",
+  UPDATE_ORG_DOMAINS = "org:domain:update",
+  DELETE_ORG_DOMAINS = "org:domain:delete",
+  CREATE_ORG_DOMAINS = "org:domain:create",
+  VERIFY_ORG_DOMAINS = "org:domain:verify",
+  READ_ORG_WEBHOOKS = "org:webhook:read",
+  UPDATE_ORG_WEBHOOKS = "org:webhook:update",
+  DELETE_ORG_WEBHOOKS = "org:webhook:delete",
+  CREATE_ORG_WEBHOOKS = "org:webhook:create",
+  READ_ORG_MEMBERSHIPS = "org:membership:read",
+  UPDATE_ORG_MEMBERSHIPS = "org:membership:update",
+  DELETE_ORG_MEMBERSHIPS = "org:membership:delete",
+  CREATE_ORG_MEMBERSHIPS = "org:membership:create"
 }
 
 export enum UserScopes {

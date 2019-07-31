@@ -5,7 +5,7 @@ import {
   Authorizations,
   UserRole,
   MembershipRole,
-  ApiAuthorizations,
+  OrgScopes,
   Tokens,
   UserScopes
 } from "../interfaces/enum";
@@ -20,7 +20,7 @@ import { ApiKeyResponse } from "./jwt";
  */
 const canUserUser = async (
   user: User,
-  action: Authorizations | ApiAuthorizations | UserScopes,
+  action: Authorizations | UserScopes,
   target: User
 ) => {
   // A super user can do anything
@@ -53,8 +53,7 @@ const canUserUser = async (
 
     if (action == Authorizations.READ) {
       // A user can read another user in the same organization, as long as they're not a basic member
-      if (userMemberships[similarMembership].role != MembershipRole.BASIC)
-        allowed = true;
+      if (userMemberships[similarMembership].role) allowed = true;
     }
   });
 
@@ -83,7 +82,7 @@ const canAccessTokenUser = (
  */
 const canUserOrganization = async (
   user: User,
-  action: Authorizations | ApiAuthorizations,
+  action: Authorizations | OrgScopes,
   target: Organization
 ) => {
   // A super user can do anything
@@ -102,18 +101,38 @@ const canUserOrganization = async (
     // An organization admin can do anything too
     if (membership.role == MembershipRole.ADMIN) allowed = true;
 
-    // An organization manager can do anything but delete
+    // An organization manager can do some things
     if (
       membership.role == MembershipRole.MANAGER &&
       action != Authorizations.DELETE &&
-      action != Authorizations.DELETE_SECURE
+      action != Authorizations.DELETE_SECURE &&
+      action != OrgScopes.DELETE_ORG &&
+      action != OrgScopes.READ_ORG_BILLING &&
+      action != OrgScopes.UPDATE_ORG_BILLING &&
+      action != OrgScopes.READ_ORG_SUBSCRIPTIONS &&
+      action != OrgScopes.UPDATE_ORG_SUBSCRIPTIONS &&
+      action != OrgScopes.CREATE_ORG_SUBSCRIPTIONS &&
+      action != OrgScopes.READ_ORG_INVOICES &&
+      action != OrgScopes.READ_ORG_PLANS &&
+      action != OrgScopes.READ_ORG_SOURCES &&
+      action != OrgScopes.UPDATE_ORG_SOURCES &&
+      action != OrgScopes.DELETE_ORG_SOURCES &&
+      action != OrgScopes.CREATE_ORG_SOURCES &&
+      action != OrgScopes.CREATE_ORG_WEBHOOKS &&
+      action != OrgScopes.DELETE_ORG_WEBHOOKS &&
+      action != OrgScopes.UPDATE_ORG_WEBHOOKS &&
+      action != OrgScopes.CREATE_ORG_API_KEYS &&
+      action != OrgScopes.DELETE_ORG_API_KEYS &&
+      action != OrgScopes.UPDATE_ORG_API_KEYS
     )
       allowed = true;
 
     // An organization member can read, not edit/delete/invite
     if (
       membership.role == MembershipRole.MEMBER &&
-      action == Authorizations.READ
+      (action == Authorizations.READ ||
+        action == OrgScopes.READ_ORG ||
+        action == OrgScopes.READ_ORG_MEMBERSHIPS)
     )
       allowed = true;
   });
@@ -126,7 +145,7 @@ const canUserOrganization = async (
  */
 const canUserMembership = async (
   user: User,
-  action: Authorizations | ApiAuthorizations,
+  action: Authorizations | OrgScopes,
   target: Membership
 ) => {
   // A super user can do anything
@@ -165,7 +184,7 @@ const canUserMembership = async (
  */
 const canUserGeneral = async (
   user: User,
-  action: Authorizations | ApiAuthorizations
+  action: Authorizations | OrgScopes
 ) => {
   // A super user can do anything
   if (user.role == UserRole.ADMIN) return true;
@@ -178,12 +197,14 @@ const canUserGeneral = async (
  */
 const canApiKeyOrganization = (
   apiKey: ApiKeyResponse,
-  action: Authorizations | ApiAuthorizations,
+  action: Authorizations | OrgScopes,
   target: Organization
 ) => {
   if (apiKey.organizationId != target.id) return false;
 
   if (!apiKey.scopes) return false;
+
+  if (apiKey.scopes.includes(action)) return true;
 
   if (
     apiKey.scopes.includes("orgRead") &&
@@ -210,7 +231,7 @@ const canApiKeyOrganization = (
  */
 export const can = async (
   user: User | number | ApiKeyResponse | AccessTokenResponse,
-  action: Authorizations | ApiAuthorizations | UserScopes,
+  action: Authorizations | OrgScopes | UserScopes,
   targetType: "user" | "organization" | "membership" | "general",
   target?: User | Organization | Membership | number
 ) => {
@@ -234,14 +255,14 @@ export const can = async (
     if (target && typeof target === "object") {
       return await canApiKeyOrganization(
         user as ApiKeyResponse,
-        action as Authorizations | ApiAuthorizations,
+        action as Authorizations | OrgScopes,
         target
       );
     } else if (target) {
       target = await getOrganization(target);
       return await canApiKeyOrganization(
         user as ApiKeyResponse,
-        action as Authorizations | ApiAuthorizations,
+        action as Authorizations | OrgScopes,
         target
       );
     } else {
@@ -273,14 +294,18 @@ export const can = async (
     if (typeof target === "string" || typeof target === "number")
       targetObject = await getUser(target);
     else targetObject = target as User;
-    return await canUserUser(userObject, action, targetObject as User);
+    return await canUserUser(
+      userObject,
+      action as Authorizations | UserScopes,
+      targetObject as User
+    );
   } else if (targetType === "organization") {
     if (typeof target === "string" || typeof target === "number")
       targetObject = await getOrganization(target);
     else targetObject = target as Organization;
     return await canUserOrganization(
       userObject,
-      action as Authorizations | ApiAuthorizations,
+      action as Authorizations | OrgScopes,
       targetObject as Organization
     );
   } else if (targetType === "membership") {
@@ -289,12 +314,10 @@ export const can = async (
     else targetObject = target as Membership;
     return await canUserMembership(
       userObject,
-      action as Authorizations | ApiAuthorizations,
+      action as Authorizations | OrgScopes,
       targetObject as Membership
     );
   }
 
-  return await canUserGeneral(userObject, action as
-    | Authorizations
-    | ApiAuthorizations);
+  return await canUserGeneral(userObject, action as Authorizations | OrgScopes);
 };
