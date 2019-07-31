@@ -48,8 +48,7 @@ export class Staart extends Server {
   private setupControllers() {
     this.app.get("/", (req: Request, res: Response) =>
       res.json({
-        repository: "https://github.com/o15y/staart",
-        demo: "https://staart-demo.o15y.com"
+        repository: "https://github.com/speakupnl/staart"
       })
     );
     // staart:setup/controllers

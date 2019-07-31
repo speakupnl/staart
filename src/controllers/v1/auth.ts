@@ -39,6 +39,7 @@ import {
   facebook
 } from "../../rest/oauth";
 import { stringify } from "querystring";
+import { keyCloakLoginWithUsernamePassword } from "../../helpers/keycloak";
 
 const OAuthRedirector = (action: RequestHandler) => (
   ...args: [Request, Response, NextFunction]
@@ -74,6 +75,13 @@ const OAuthRedirect = (
 @ClassMiddleware(bruteForceHandler)
 @ClassWrapper(asyncHandler)
 export class AuthController {
+  @Get("keycloak")
+  async loginWithKeyCloak(req: Request, res: Response) {
+    const username = process.env.EXAMPLE_USERNAME as string;
+    const password = process.env.EXAMPLE_PASSWORD as string;
+    res.json(await keyCloakLoginWithUsernamePassword(username, password));
+  }
+
   @Post("register")
   @Middleware(
     validator(
