@@ -18,8 +18,8 @@ export const safeError = (error: string) => {
   if (errorString === "TokenExpiredError: jwt expired")
     return sendError(ErrorCode.EXPIRED_TOKEN);
   if (
-    errorString.startsWith("JsonWebTokenError") ||
-    errorString.startsWith("JsonWebTokenjwt")
+    errorString.includes("JsonWebTokenError") ||
+    errorString.includes("JsonWebTokenjwt")
   )
     return sendError(ErrorCode.INVALID_TOKEN);
   return sendError(errorString);

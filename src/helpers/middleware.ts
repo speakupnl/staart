@@ -110,7 +110,7 @@ export const authHandler = async (
       if (userToken) res.locals.token = userToken;
     }
 
-    let apiKeyJwt = req.get("X-Api-Key");
+    let apiKeyJwt = req.get("X-Api-Key") || req.query.key;
     if (apiKeyJwt) {
       if (apiKeyJwt.startsWith("Bearer "))
         apiKeyJwt = apiKeyJwt.replace("Bearer ", "");
@@ -164,11 +164,11 @@ export const rateLimitHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKey = req.get("X-Api-Key");
-  if (apiKey) {
+  const apiKeyJwt = req.get("X-Api-Key") || req.query.key;
+  if (apiKeyJwt) {
     try {
       const details = (await verifyToken(
-        apiKey,
+        apiKeyJwt,
         Tokens.API_KEY
       )) as ApiKeyResponse;
       if (details.organizationId) {
@@ -189,11 +189,11 @@ export const speedLimitHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKey = req.get("X-Api-Key");
-  if (apiKey) {
+  const apiKeyJwt = req.get("X-Api-Key") || req.query.key;
+  if (apiKeyJwt) {
     try {
       const details = (await verifyToken(
-        apiKey,
+        apiKeyJwt,
         Tokens.API_KEY
       )) as ApiKeyResponse;
       if (details.organizationId) {
