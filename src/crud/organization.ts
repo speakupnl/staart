@@ -10,6 +10,7 @@ import {
   Domain,
   Webhook
 } from "../interfaces/tables/organization";
+import ms from "ms";
 import { capitalizeFirstAndLastLetter, createSlug } from "../helpers/utils";
 import { KeyValue } from "../interfaces/general";
 import { cachedQuery, deleteItemFromCache } from "../helpers/cache";
@@ -22,6 +23,10 @@ import { TOKEN_EXPIRY_API_KEY_MAX, JWT_ISSUER } from "../config";
 import { InsertResult } from "../interfaces/mysql";
 import { Membership } from "../interfaces/tables/memberships";
 import { getUser } from "./user";
+import {
+  elasticSearch,
+  cleanElasticSearchQueryResponse
+} from "../helpers/elasticsearch";
 
 /*
  * Create a new organization for a user
@@ -151,6 +156,50 @@ export const getApiKey = async (organizationId: number, apiKeyId: number) => {
       [apiKeyId, organizationId]
     )
   ))[0];
+};
+
+/**
+ * Get an API key
+ */
+export const getApiKeyLogs = async (
+  organizationId: number,
+  apiKeyId: number,
+  query: KeyValue
+) => {
+  await getApiKey(organizationId, apiKeyId);
+  const range: string = query.range || "7d";
+  const from = query.from ? parseInt(query.from) : 0;
+  const result = await elasticSearch.search({
+    index: `staart-logs-*`,
+    from,
+    body: {
+      query: {
+        bool: {
+          must: [
+            {
+              match: {
+                apiKeyId
+              }
+            },
+            {
+              range: {
+                date: {
+                  gte: new Date(new Date().getTime() - ms(range))
+                }
+              }
+            }
+          ]
+        }
+      },
+      sort: [
+        {
+          date: { order: "desc" }
+        }
+      ],
+      size: 10
+    }
+  });
+  return cleanElasticSearchQueryResponse(result);
 };
 
 /**

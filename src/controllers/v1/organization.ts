@@ -40,7 +40,8 @@ import {
   inviteMemberToOrganization,
   getOrganizationMembershipForUser,
   deleteOrganizationMembershipForUser,
-  updateOrganizationMembershipForUser
+  updateOrganizationMembershipForUser,
+  getOrganizationApiKeyLogsForUser
 } from "../../rest/organization";
 import {
   Get,
@@ -331,7 +332,8 @@ export class OrganizationController {
         localsToTokenOrKey(res),
         organizationId,
         subscriptionId,
-        data
+        data,
+        res.locals
       )
     );
   }
@@ -357,27 +359,25 @@ export class OrganizationController {
       await createOrganizationSubscriptionForUser(
         localsToTokenOrKey(res),
         organizationId,
-        subscriptionParams
+        subscriptionParams,
+        res.locals
       )
     );
   }
 
-  @Get(":id/pricing/:product")
+  @Get(":id/pricing")
   async getPlans(req: Request, res: Response) {
-    const product = req.params.product;
     const organizationId = await organizationUsernameToId(req.params.id);
     joiValidate(
       {
-        organizationId: Joi.number().required(),
-        product: Joi.string().required()
+        organizationId: Joi.number().required()
       },
-      { organizationId, product }
+      { organizationId }
     );
     res.json(
       await getOrganizationPricingPlansForUser(
         localsToTokenOrKey(res),
-        organizationId,
-        product
+        organizationId
       )
     );
   }
@@ -395,7 +395,8 @@ export class OrganizationController {
         await createOrganizationSourceForUser(
           localsToTokenOrKey(res),
           organizationId,
-          req.body
+          req.body,
+          res.locals
         )
       );
   }
@@ -415,7 +416,8 @@ export class OrganizationController {
       await deleteOrganizationSourceForUser(
         localsToTokenOrKey(res),
         organizationId,
-        sourceId
+        sourceId,
+        res.locals
       )
     );
   }
@@ -436,7 +438,8 @@ export class OrganizationController {
         localsToTokenOrKey(res),
         organizationId,
         sourceId,
-        req.body
+        req.body,
+        res.locals
       )
     );
   }
@@ -715,6 +718,27 @@ export class OrganizationController {
         id,
         apiKeyId,
         res.locals
+      )
+    );
+  }
+
+  @Get(":id/api-keys/:apiKeyId/logs")
+  async getUserApiKeyLogs(req: Request, res: Response) {
+    const id = await organizationUsernameToId(req.params.id);
+    const apiKeyId = req.params.apiKeyId;
+    joiValidate(
+      {
+        id: [Joi.string().required(), Joi.number().required()],
+        apiKeyId: Joi.number().required()
+      },
+      { id, apiKeyId }
+    );
+    res.json(
+      await getOrganizationApiKeyLogsForUser(
+        localsToTokenOrKey(res),
+        id,
+        apiKeyId,
+        req.query
       )
     );
   }

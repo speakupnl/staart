@@ -3,6 +3,8 @@ import Brute from "express-brute";
 import RateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import Joi from "@hapi/joi";
+import pkg from "../../package.json";
+import ms from "ms";
 import { safeError } from "./errors";
 import {
   verifyToken,
@@ -26,6 +28,7 @@ import {
 } from "../config";
 import { ApiKey } from "../interfaces/tables/organization";
 import { joiValidate, includesDomainInCommaList } from "./utils";
+import { trackUrl } from "./tracking";
 const store = new Brute.MemoryStore();
 const bruteForce = new Brute(store, {
   freeRetries: BRUTE_FREE_RETRIES,
@@ -72,6 +75,7 @@ export const trackingHandler = (
   next: NextFunction
 ) => {
   res.locals.userAgent = req.get("User-Agent");
+  res.setHeader("X-Api-Version", pkg.version);
   let ip =
     req.headers["x-forwarded-for"] ||
     req.connection.remoteAddress ||
@@ -81,7 +85,10 @@ export const trackingHandler = (
   if (Array.isArray(ip) && ip.length) ip = ip[0];
   res.locals.ipAddress = ip;
   res.locals.referrer = req.headers.referer as string;
-  next();
+  trackUrl(req, res)
+    .then(() => {})
+    .then(() => {})
+    .finally(() => next());
 };
 
 export interface ApiKeyToken {
@@ -164,11 +171,11 @@ export const rateLimitHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKeyJwt = req.get("X-Api-Key") || req.query.key;
-  if (apiKeyJwt) {
+  const apiKey = req.get("X-Api-Key") || req.query.key;
+  if (apiKey) {
     try {
       const details = (await verifyToken(
-        apiKeyJwt,
+        apiKey,
         Tokens.API_KEY
       )) as ApiKeyResponse;
       if (details.organizationId) {
@@ -189,11 +196,11 @@ export const speedLimitHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKeyJwt = req.get("X-Api-Key") || req.query.key;
-  if (apiKeyJwt) {
+  const apiKey = req.get("X-Api-Key") || req.query.key;
+  if (apiKey) {
     try {
       const details = (await verifyToken(
-        apiKeyJwt,
+        apiKey,
         Tokens.API_KEY
       )) as ApiKeyResponse;
       if (details.organizationId) {
@@ -203,6 +210,20 @@ export const speedLimitHandler = async (
     } catch (error) {}
   }
   return speedLimiter(req, res, next);
+};
+
+/**
+ * Response caching middleware
+ * @param time - Amount of time to cache contenr for
+ */
+export const cachedResponse = (time: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    res.set(
+      "Cache-Control",
+      `max-age=${Math.floor(ms(time) / 1000)}, must-revalidate`
+    );
+    return next();
+  };
 };
 
 export const validator = (
