@@ -54,6 +54,7 @@ import axios from "axios";
 import { GitHubEmail } from "../interfaces/oauth";
 import { createSlug } from "../helpers/utils";
 import { trackEvent } from "../helpers/tracking";
+import { getDomainByDomainName } from "../crud/organization";
 
 export const validateRefreshToken = async (token: string, locals: Locals) => {
   await checkInvalidatedToken(token);
@@ -124,12 +125,27 @@ export const register = async (
     const emailId = newEmail.insertId;
     await updateUser(userId, { primaryEmail: emailId });
   }
-  if (organizationId && role) {
+  if (organizationId) {
     await createMembership({
       userId,
       organizationId,
-      role
+      role: role || MembershipRole.MEMBER
     });
+  } else if (email) {
+    let domain = "";
+    try {
+      domain = email.split("@")[1];
+    } catch (error) {}
+    if (domain) {
+      const domainDetails = await getDomainByDomainName(domain);
+      if (domainDetails) {
+        await createMembership({
+          userId,
+          organizationId: domainDetails.organizationId,
+          role: MembershipRole.MEMBER
+        });
+      }
+    }
   }
   if (locals) await addApprovedLocation(userId, locals.ipAddress);
   return { created: true, userId };
@@ -156,7 +172,7 @@ export const sendNewPassword = async (userId: number, email: string) => {
   const user = await getUser(userId);
   const userEmails = await getUserEmails(userId);
   if (!userEmails.filter(userEmail => userEmail.email === email).length)
-    throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+    throw new Error(ErrorCode.NOT_FOUND);
   if (!user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
   const token = await passwordResetToken(user.id);
   await mail(email, Templates.NEW_PASSWORD, { name: user.name, token });

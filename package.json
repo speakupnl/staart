@@ -1,6 +1,6 @@
 {
   "name": "speakup-staart",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "index.js",
   "repository": "git@github.com:speakupnl/staart.git",
   "author": "Anand Chowdhary <mail@anandchowdhary.com>",
@@ -61,7 +61,7 @@
     "@types/hapi__joi": "^15.0.3",
     "@types/helmet": "^0.0.43",
     "@types/http-aws-es": "^6.0.0",
-    "@types/jest": "^24.0.16",
+    "@types/jest": "^24.0.17",
     "@types/jsonwebtoken": "^8.3.2",
     "@types/marked": "^0.6.5",
     "@types/md5": "^2.1.33",
@@ -74,13 +74,13 @@
     "@types/qrcode": "^1.3.3",
     "@types/request": "^2.48.2",
     "@types/response-time": "^2.3.3",
-    "@types/stripe": "^6.31.13",
+    "@types/stripe": "^6.31.14",
     "@types/validator": "^10.11.2",
     "@types/yaml": "^1.0.2",
     "concurrently": "^4.1.1",
-    "coveralls": "^3.0.5",
+    "coveralls": "^3.0.6",
     "dotenv": "^8.0.0",
-    "husky": "^3.0.2",
+    "husky": "^3.0.3",
     "jest": "^24.8.0",
     "onchange": "^6.0.0",
     "prettier": "^1.18.2",
@@ -94,8 +94,8 @@
   },
   "dependencies": {
     "@hapi/joi": "^15.0.3",
-    "@sentry/node": "^5.5.0",
-    "aws-sdk": "^2.503.0",
+    "@sentry/node": "^5.6.1",
+    "aws-sdk": "^2.506.0",
     "axios": "^0.19.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -137,12 +137,12 @@
     "response-time": "^2.3.2",
     "rotating-file-stream": "^1.4.3",
     "slugify": "^1.3.4",
-    "snyk": "^1.208.0",
-    "stripe": "^7.6.0"
+    "snyk": "^1.213.0",
+    "stripe": "^7.6.1"
   },
   "files": [
     "setup"
   ],
   "snyk": true,
-  "staart-version": "1.0.124"
+  "staart-version": "1.0.128"
 }
