@@ -1,6 +1,6 @@
 {
   "name": "speakup-staart",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "index.js",
   "repository": "git@github.com:speakupnl/staart.git",
   "author": "Anand Chowdhary <mail@anandchowdhary.com>",
@@ -62,24 +62,25 @@
     "@types/helmet": "^0.0.43",
     "@types/http-aws-es": "^6.0.0",
     "@types/jest": "^24.0.17",
-    "@types/jsonwebtoken": "^8.3.2",
+    "@types/jsonwebtoken": "^8.3.3",
     "@types/marked": "^0.6.5",
     "@types/md5": "^2.1.33",
     "@types/morgan": "^1.7.36",
     "@types/ms": "^0.7.30",
     "@types/mustache": "^0.8.32",
     "@types/mysql": "^2.15.6",
-    "@types/node": "^12.6.9",
+    "@types/node": "^12.7.2",
     "@types/node-emoji": "^1.8.1",
-    "@types/qrcode": "^1.3.3",
+    "@types/qrcode": "^1.3.4",
     "@types/request": "^2.48.2",
     "@types/response-time": "^2.3.3",
-    "@types/stripe": "^6.31.14",
+    "@types/stripe": "^6.31.16",
     "@types/validator": "^10.11.2",
     "@types/yaml": "^1.0.2",
     "concurrently": "^4.1.1",
     "coveralls": "^3.0.6",
     "dotenv": "^8.0.0",
+    "has-yarn": "^2.1.0",
     "husky": "^3.0.3",
     "jest": "^24.8.0",
     "onchange": "^6.0.0",
@@ -93,9 +94,9 @@
     "yaml": "^1.6.0"
   },
   "dependencies": {
-    "@hapi/joi": "^15.0.3",
+    "@hapi/joi": "^15.1.1",
     "@sentry/node": "^5.6.1",
-    "aws-sdk": "^2.506.0",
+    "aws-sdk": "^2.511.0",
     "axios": "^0.19.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -105,7 +106,7 @@
     "crypto-random-string": "^3.0.1",
     "disposable-email-domains": "^1.0.47",
     "elasticsearch": "^16.3.0",
-    "express": "^4.17.0",
+    "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "express-brute": "^1.0.1",
     "express-rate-limit": "^5.0.0",
@@ -117,7 +118,7 @@
     "http-aws-es": "^6.0.0",
     "http-status-codes": "^1.3.2",
     "ip-anonymize": "^0.1.0",
-    "ip-range-check": "^0.0.2",
+    "ip-range-check": "^0.2.0",
     "jsonwebtoken": "^8.5.1",
     "keycloak-admin": "^1.12.0",
     "marked": "^0.7.0",
@@ -138,12 +139,12 @@
     "response-time": "^2.3.2",
     "rotating-file-stream": "^1.4.3",
     "slugify": "^1.3.4",
-    "snyk": "^1.213.0",
-    "stripe": "^7.6.1"
+    "snyk": "^1.216.5",
+    "stripe": "^7.8.0"
   },
   "files": [
     "setup"
   ],
   "snyk": true,
-  "staart-version": "1.0.128"
+  "staart-version": "1.0.133"
 }
