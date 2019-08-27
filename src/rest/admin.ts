@@ -44,7 +44,7 @@ export const getServerLogsForUser = async (
   const range: string = query.range || "7d";
   const from = query.from ? parseInt(query.from) : 0;
   const result = await elasticSearch.search({
-    index: `staart-logs-*`,
+    index: `speakup-staart-logs-*`,
     from,
     body: {
       query: {

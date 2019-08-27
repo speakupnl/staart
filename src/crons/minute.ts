@@ -54,7 +54,7 @@ const storeTrackingLogs = async () => {
   for await (const body of data) {
     try {
       await elasticSearch.index({
-        index: `staart-logs-${year}-${month}-${day}`,
+        index: `speakup-staart-logs-${year}-${month}-${day}`,
         body,
         type: "log"
       });
