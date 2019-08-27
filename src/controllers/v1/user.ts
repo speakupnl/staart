@@ -168,7 +168,7 @@ export class UserController {
   @Get(":id/memberships/:membershipId")
   async getMembership(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const membershipId = req.params.membershipId;
+    const membershipId = parseInt(req.params.membershipId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -182,7 +182,7 @@ export class UserController {
   @Delete(":id/memberships/:membershipId")
   async deleteMembership(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const membershipId = req.params.membershipId;
+    const membershipId = parseInt(req.params.membershipId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -197,7 +197,7 @@ export class UserController {
   @Patch(":id/memberships/:membershipId")
   async updateMembership(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const membershipId = req.params.membershipId;
+    const membershipId = parseInt(req.params.membershipId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -251,7 +251,7 @@ export class UserController {
   @Get(":id/emails/:emailId")
   async getEmail(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const emailId = req.params.emailId;
+    const emailId = parseInt(req.params.emailId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -265,7 +265,7 @@ export class UserController {
   @Post(":id/emails/:emailId/resend")
   async postResend(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const emailId = req.params.emailId;
+    const emailId = parseInt(req.params.emailId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -280,7 +280,7 @@ export class UserController {
   @Delete(":id/emails/:emailId")
   async deleteEmail(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const emailId = req.params.emailId;
+    const emailId = parseInt(req.params.emailId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -310,7 +310,7 @@ export class UserController {
   @Patch(":id/notifications/:notificationId")
   async updateUserNotification(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const notificationId = req.params.notificationId;
+    const notificationId = parseInt(req.params.notificationId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -440,7 +440,7 @@ export class UserController {
   @Get(":id/access-tokens/:accessTokenId")
   async getUserAccessToken(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const accessTokenId = req.params.accessTokenId;
+    const accessTokenId = parseInt(req.params.accessTokenId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -466,7 +466,7 @@ export class UserController {
   )
   async patchUserAccessToken(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const accessTokenId = req.params.accessTokenId;
+    const accessTokenId = parseInt(req.params.accessTokenId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -488,7 +488,7 @@ export class UserController {
   @Delete(":id/access-tokens/:accessTokenId")
   async deleteUserAccessToken(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const accessTokenId = req.params.accessTokenId;
+    const accessTokenId = parseInt(req.params.accessTokenId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -529,7 +529,7 @@ export class UserController {
   @Get(":id/sessions/:sessionId")
   async getUserSession(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const sessionId = req.params.sessionId;
+    const sessionId = parseInt(req.params.sessionId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
@@ -543,7 +543,7 @@ export class UserController {
   @Delete(":id/sessions/:sessionId")
   async deleteUserSession(req: Request, res: Response) {
     const id = await userUsernameToId(req.params.id, res.locals.token.id);
-    const sessionId = req.params.sessionId;
+    const sessionId = parseInt(req.params.sessionId);
     joiValidate(
       {
         id: [Joi.string().required(), Joi.number().required()],
