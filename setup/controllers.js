@@ -89,7 +89,7 @@ const generateStaticFiles = async () => {
     ${staticFiles
       .map(
         staticFile => `
-      this.app.get("${staticFile}", (req, res) => res.sendFile(join(__dirname, "..", "static", "${staticFile}")));
+      this.app.get("${staticFile}", (req, res) => res.sendFile(join(__dirname, "..", "..", "static", "${staticFile}")));
     `
       )
       .join("")}
