@@ -15,7 +15,6 @@ import { capitalizeFirstAndLastLetter, createSlug } from "../helpers/utils";
 import { KeyValue } from "../interfaces/general";
 import { cachedQuery, deleteItemFromCache } from "../helpers/cache";
 import { CacheCategories, ErrorCode, Webhooks } from "../interfaces/enum";
-import { ApiKey } from "../interfaces/tables/organization";
 import { getPaginatedData } from "./data";
 import cryptoRandomString from "crypto-random-string";
 import { apiKeyToken, invalidateToken } from "../helpers/jwt";
@@ -156,14 +155,7 @@ export const getOrganizationApiKeys = async (
  * Get an API key
  */
 export const getApiKey = async (organizationId: number, apiKeyId: number) => {
-  return (<ApiKey[]>(
-    await query(
-      `SELECT * FROM ${tableName(
-        "api-keys"
-      )} WHERE id = ? AND organizationId = ? LIMIT 1`,
-      [apiKeyId, organizationId]
-    )
-  ))[0];
+  return;
 };
 
 /**
@@ -174,54 +166,14 @@ export const getApiKeyLogs = async (
   apiKeyId: number,
   query: KeyValue
 ) => {
-  await getApiKey(organizationId, apiKeyId);
-  const range: string = query.range || "7d";
-  const from = query.from ? parseInt(query.from) : 0;
-  const result = await elasticSearch.search({
-    index: `staart-logs-*`,
-    from,
-    body: {
-      query: {
-        bool: {
-          must: [
-            {
-              match: {
-                apiKeyId
-              }
-            },
-            {
-              range: {
-                date: {
-                  gte: new Date(new Date().getTime() - ms(range))
-                }
-              }
-            }
-          ]
-        }
-      },
-      sort: [
-        {
-          date: { order: "desc" }
-        }
-      ],
-      size: 10
-    }
-  });
-  return cleanElasticSearchQueryResponse(result);
+  return;
 };
 
 /**
  * Create an API key
  */
-export const createApiKey = async (apiKey: ApiKey) => {
-  apiKey.expiresAt = apiKey.expiresAt || new Date(TOKEN_EXPIRY_API_KEY_MAX);
-  apiKey.createdAt = new Date();
-  apiKey.updatedAt = apiKey.createdAt;
-  apiKey.jwtApiKey = await apiKeyToken(apiKey);
-  return await query(
-    `INSERT INTO ${tableName("api-keys")} ${tableValues(apiKey)}`,
-    Object.values(apiKey)
-  );
+export const createApiKey = async (apiKey: any) => {
+  return;
 };
 
 /**
@@ -232,17 +184,7 @@ export const updateApiKey = async (
   apiKeyId: number,
   data: KeyValue
 ) => {
-  data.updatedAt = new Date();
-  data = removeReadOnlyValues(data);
-  const apiKey = await getApiKey(organizationId, apiKeyId);
-  if (apiKey.jwtApiKey) await invalidateToken(apiKey.jwtApiKey);
-  data.jwtApiKey = await apiKeyToken({ ...apiKey, ...data });
-  return await query(
-    `UPDATE ${tableName("api-keys")} SET ${setValues(
-      data
-    )} WHERE id = ? AND organizationId = ?`,
-    [...Object.values(data), apiKeyId, organizationId]
-  );
+  return;
 };
 
 /**
@@ -252,14 +194,7 @@ export const deleteApiKey = async (
   organizationId: number,
   apiKeyId: number
 ) => {
-  const currentApiKey = await getApiKey(organizationId, apiKeyId);
-  if (currentApiKey.jwtApiKey) await invalidateToken(currentApiKey.jwtApiKey);
-  return await query(
-    `DELETE FROM ${tableName(
-      "api-keys"
-    )} WHERE id = ? AND organizationId = ? LIMIT 1`,
-    [apiKeyId, organizationId]
-  );
+  return;
 };
 
 /**
