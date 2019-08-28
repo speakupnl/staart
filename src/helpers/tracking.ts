@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { verifyToken } from "./jwt";
 import { Tokens } from "../interfaces/enum";
 import { Event } from "../interfaces/tables/events";
 import { Locals } from "../interfaces/general";
@@ -41,19 +40,6 @@ export const trackUrl = async (req: Request, res: Response) => {
     ipCountry: (req.get("cf-ipcountry") || "").toLowerCase(),
     ...res.locals
   };
-  if (trackingObject.apiKey) {
-    try {
-      const token = (await verifyToken(
-        trackingObject.apiKey,
-        Tokens.API_KEY
-      )) as any;
-      trackingObject.apiKeyId = token.id;
-      trackingObject.apiKeyOrganizationId = token.organizationId;
-      trackingObject.apiKeyJti = token.jti;
-    } catch (error) {
-      return;
-    }
-  }
   Object.keys(trackingObject).forEach(key => {
     if (
       typeof trackingObject[key] === "object" &&

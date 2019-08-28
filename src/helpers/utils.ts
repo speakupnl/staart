@@ -2,14 +2,11 @@ import anonymize from "ip-anonymize";
 import { User } from "../interfaces/tables/user";
 import dns from "dns";
 import Joi from "@hapi/joi";
-import { getOrganizationIdFromUsername } from "../crud/organization";
 import { Request, Response } from "express";
 import slugify from "slugify";
 import cryptoRandomString from "crypto-random-string";
 import { Tokens } from "../interfaces/enum";
-import { ApiKeyResponse } from "./jwt";
 import { isMatch } from "matcher";
-import { getUserIdFromUsername } from "../crud/user";
 
 /**
  * Capitalize each first letter in a string
@@ -61,27 +58,9 @@ export const deleteSensitiveInfoUser = (user: User) => {
 export const anonymizeIpAddress = (ipAddress: string) =>
   anonymize(ipAddress) || ipAddress;
 
-export const organizationUsernameToId = async (id: string) => {
-  if (isNaN(Number(id))) {
-    return await getOrganizationIdFromUsername(id);
-  } else {
-    return parseInt(id);
-  }
-};
-
-export const userUsernameToId = async (id: string, tokenUserId: number) => {
-  if (id === "me") {
-    return tokenUserId;
-  } else if (isNaN(Number(id))) {
-    return await getUserIdFromUsername(id);
-  } else {
-    return parseInt(id);
-  }
-};
-
 export const localsToTokenOrKey = (res: Response) => {
   if (res.locals.token.sub == Tokens.API_KEY) {
-    return res.locals.token as ApiKeyResponse;
+    return res.locals.token;
   }
   return res.locals.token.id as number;
 };
