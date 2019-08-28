@@ -70,6 +70,7 @@ export const SERVICE_2FA = process.env.SERVICE_2FA || "staart";
 export const KEYCLOAK_BASE_URL =
   process.env.KEYCLOAK_BASE_URL || "http://localhost:8080";
 export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || "admin-cli";
+export const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || "apidev";
 
 export const TOKEN_EXPIRY_EMAIL_VERIFICATION =
   process.env.TOKEN_EXPIRY_EMAIL_VERIFICATION || "7d";
