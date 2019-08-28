@@ -42,7 +42,7 @@ export const keyCloakUpdateUser = async (id: string, data: KeyValue) => {
   return await speakHub.users.update({ id }, data);
 };
 
-export const keyCloakUpdatePasswordForUser = async (
+export const keyCloakUpdatePasswordOfUser = async (
   id: string,
   newPassword: string
 ) => {

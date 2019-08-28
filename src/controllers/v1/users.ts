@@ -2,25 +2,24 @@ import { Request, Response } from "express";
 import {
   Get,
   Controller,
-  Put,
   ClassWrapper,
   ClassMiddleware,
   Patch,
   Delete,
   Post
 } from "@overnightjs/core";
+import {
+  listUsersForUser,
+  getUserForUser,
+  updateUserForUser,
+  deleteUserForUser,
+  updatePasswordOfUserForUser,
+  sendEmailVerificationToUserForUser,
+  getUserGroupsForUser,
+  removeUserFromGroupForUser
+} from "../../rest/user";
 import { bruteForceHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
-import {
-  keyCloakListUsers,
-  keyCloakGetUser,
-  keyCloakUpdateUser,
-  keyCloakDeleteUser,
-  keyCloakGetUserGroups,
-  keyCloakUpdatePasswordForUser,
-  keyCloakSendEmailVerificationToUser,
-  keyCloakRemoveUserFromGroup
-} from "../../helpers/keycloak";
 
 @Controller("v1/users")
 @ClassMiddleware(bruteForceHandler)
@@ -28,34 +27,42 @@ import {
 export class AuthController {
   @Get()
   async listUsers(req: Request, res: Response) {
-    res.json(await keyCloakListUsers());
+    res.json(await listUsersForUser(res.locals.token));
   }
 
   @Get(":id")
   async getUser(req: Request, res: Response) {
-    res.json(await keyCloakGetUser(req.params.id));
+    res.json(await getUserForUser(res.locals.token, req.params.id));
   }
 
   @Patch(":id")
   async updateUser(req: Request, res: Response) {
-    res.json(await keyCloakUpdateUser(req.params.id, req.body));
+    res.json(
+      await updateUserForUser(res.locals.token, req.params.id, req.body)
+    );
   }
 
   @Delete(":id")
   async deleteUser(req: Request, res: Response) {
-    res.json(await keyCloakDeleteUser(req.params.id));
+    res.json(await deleteUserForUser(res.locals.token, req.params.id));
   }
 
   @Post(":id/password")
   async updateUserPassword(req: Request, res: Response) {
     res.json(
-      await keyCloakUpdatePasswordForUser(req.params.id, req.body.password)
+      await updatePasswordOfUserForUser(
+        res.locals.token,
+        req.params.id,
+        req.body.password
+      )
     );
   }
 
   @Post(":id/resend-verification")
   async resendVerification(req: Request, res: Response) {
-    res.json(await keyCloakSendEmailVerificationToUser(req.params.id));
+    res.json(
+      await sendEmailVerificationToUserForUser(res.locals.token, req.params.id)
+    );
   }
 
   /**
@@ -64,13 +71,17 @@ export class AuthController {
 
   @Get(":id/groups")
   async getUserGroups(req: Request, res: Response) {
-    res.json(await keyCloakGetUserGroups(req.params.id));
+    res.json(await getUserGroupsForUser(res.locals.token, req.params.id));
   }
 
   @Delete(":id/groups/:groupId")
   async removeUserFromGroup(req: Request, res: Response) {
     res.json(
-      await keyCloakRemoveUserFromGroup(req.params.id, req.params.groupId)
+      await removeUserFromGroupForUser(
+        res.locals.token,
+        req.params.id,
+        req.params.groupId
+      )
     );
   }
 }
