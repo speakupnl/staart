@@ -6,12 +6,7 @@ import rfs from "rotating-file-stream";
 import responseTime from "response-time";
 import { json, urlencoded } from "body-parser";
 import { Server } from "@overnightjs/core";
-import {
-  errorHandler,
-  trackingHandler,
-  rateLimitHandler,
-  speedLimitHandler
-} from "./helpers/middleware";
+import { errorHandler, trackingHandler } from "./helpers/middleware";
 import { mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { Request, Response } from "express";
@@ -43,8 +38,6 @@ export class Staart extends Server {
     this.app.use(urlencoded({ extended: true }));
     this.app.use(responseTime());
     this.app.use(trackingHandler);
-    this.app.use(rateLimitHandler);
-    this.app.use(speedLimitHandler);
   }
 
   private setupControllers() {
