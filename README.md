@@ -12,6 +12,8 @@ This project is based on [Staart](https://github.com/o15y/staart).
 
 ## 🛠 Endpoints
 
+The base URL for these endpoints is `https://speakup-staart.caprover.oswaldlabs.com/v1/`
+
 ### Users
 
 | Endpoint | Method |
