@@ -10,6 +10,21 @@ This project is based on [Staart](https://github.com/o15y/staart).
 
 **⚠️ WARNING:** This repository is currently in development and will contain breaking changes. Do not use it in production.
 
-## License
+## 🛠 Endpoints
+
+### Users
+
+| Endpoint | Method |
+| - | - |
+| `GET /users` | List of all users (admin only) |
+| `GET /users/:id` | Get a user's details |
+| `PATCH /users/:id` | Update a user's details |
+| `DELETE /users/:id` | Delete a user |
+| `POST /users/:id/password` | Change a user's password |
+| `POST /users/:id/resend-verification` | Send email verification |
+| `GET /users/:id/groups` | Get a user's group memberships |
+| `DELETE /users/:id/groups/:groupId` | Remove a user from a group |
+
+## 📄 License
 
 For now, this project is not available under an open-source license.
