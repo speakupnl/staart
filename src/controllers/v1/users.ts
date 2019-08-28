@@ -18,11 +18,11 @@ import {
   getUserGroupsForUser,
   removeUserFromGroupForUser
 } from "../../rest/user";
-import { bruteForceHandler } from "../../helpers/middleware";
+import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
 
 @Controller("v1/users")
-@ClassMiddleware(bruteForceHandler)
+@ClassMiddleware(authHandler)
 @ClassWrapper(asyncHandler)
 export class AuthController {
   @Get()

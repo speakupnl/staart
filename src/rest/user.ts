@@ -10,10 +10,10 @@ import {
   keyCloakRemoveUserFromGroup
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
-import { UserScopes } from "../interfaces/enum";
+import { UserScopes, AdminScopes } from "../interfaces/enum";
 
 export const listUsersForUser = async (tokenUser: any) => {
-  await can(tokenUser, UserScopes.READ_USER, "admin");
+  await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
   return await keyCloakListUsers();
 };
 

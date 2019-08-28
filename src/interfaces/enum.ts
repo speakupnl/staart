@@ -204,6 +204,10 @@ export enum UserScopes {
   DELETE_USER_SESSION = "user:sessions:delete"
 }
 
+export enum AdminScopes {
+  READ_ALL_USERS = "users:read"
+}
+
 export enum Webhooks {
   ALL_EVENTS = "*",
   UPDATE_ORGANIZATION = "update-organization",
