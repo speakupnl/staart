@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import Brute from "express-brute";
 import RateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
@@ -6,14 +6,6 @@ import Joi from "@hapi/joi";
 import pkg from "../../package.json";
 import ms from "ms";
 import { safeError } from "./errors";
-import {
-  verifyToken,
-  TokenResponse,
-  checkInvalidatedToken,
-  ApiKeyResponse,
-  checkIpRestrictions,
-  checkReferrerRestrictions
-} from "./jwt";
 import { ErrorCode, Tokens } from "../interfaces/enum";
 import {
   BRUTE_LIFETIME,
@@ -104,113 +96,13 @@ export const authHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    let userJwt = req.get("Authorization");
-    if (userJwt) {
-      if (userJwt.startsWith("Bearer "))
-        userJwt = userJwt.replace("Bearer ", "");
-      const userToken = (await verifyToken(
-        userJwt,
-        Tokens.LOGIN
-      )) as TokenResponse;
-      await checkInvalidatedToken(userJwt);
-      if (userToken) res.locals.token = userToken;
-    }
-
-    let apiKeyJwt = req.get("X-Api-Key") || req.query.key;
-    if (apiKeyJwt) {
-      if (apiKeyJwt.startsWith("Bearer "))
-        apiKeyJwt = apiKeyJwt.replace("Bearer ", "");
-      const apiKeyToken = (await verifyToken(
-        apiKeyJwt,
-        Tokens.API_KEY
-      )) as ApiKeyResponse;
-      await checkInvalidatedToken(apiKeyJwt);
-      checkIpRestrictions(apiKeyToken, res.locals);
-      const origin = req.get("Origin");
-      if (origin) {
-        const referrerDomain = new URL(origin).hostname;
-        checkReferrerRestrictions(apiKeyToken, referrerDomain);
-        if (apiKeyToken.referrerRestrictions) {
-          if (
-            includesDomainInCommaList(
-              apiKeyToken.referrerRestrictions,
-              referrerDomain
-            )
-          ) {
-            res.setHeader("Access-Control-Allow-Origin", origin);
-          }
-        } else {
-          res.setHeader("Access-Control-Allow-Origin", "*");
-        }
-      }
-      if (apiKeyToken && !res.locals.token) res.locals.token = apiKeyToken;
-    }
-  } catch (error) {
-    const jwtError = safeError(error);
-    res.status(jwtError.status);
-    return res.json(jwtError);
-  }
-
-  if (res.locals.token) return next();
-  const error = safeError(ErrorCode.MISSING_TOKEN);
-  res.status(error.status);
-  return res.json(error);
+  next();
 };
 
 /**
  * Brute force middleware
  */
 export const bruteForceHandler = bruteForce.prevent;
-
-/**
- * Rate limiting middleware
- */
-export const rateLimitHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const apiKey = req.get("X-Api-Key") || req.query.key;
-  if (apiKey) {
-    try {
-      const details = (await verifyToken(
-        apiKey,
-        Tokens.API_KEY
-      )) as ApiKeyResponse;
-      if (details.organizationId) {
-        res.setHeader("X-Rate-Limit-Type", "api-key");
-        return rateLimiter(req, res, next);
-      }
-    } catch (error) {}
-  }
-  res.setHeader("X-RateLimit-Limit-Type", "public");
-  return publicRateLimiter(req, res, next);
-};
-
-/**
- * Speed limiting middleware
- */
-export const speedLimitHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const apiKey = req.get("X-Api-Key") || req.query.key;
-  if (apiKey) {
-    try {
-      const details = (await verifyToken(
-        apiKey,
-        Tokens.API_KEY
-      )) as ApiKeyResponse;
-      if (details.organizationId) {
-        res.setHeader("X-Rate-Limit-Type", "api-key");
-        return next();
-      }
-    } catch (error) {}
-  }
-  return speedLimiter(req, res, next);
-};
 
 /**
  * Response caching middleware

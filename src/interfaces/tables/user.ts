@@ -6,7 +6,6 @@ import {
   Tokens
 } from "../enum";
 import { IdRow, Row } from "../general";
-import { GeoLocation } from "../../helpers/location";
 
 export interface User extends IdRow {
   name: string;
@@ -73,5 +72,5 @@ export interface Session extends IdRow {
   jwtToken: string;
   ipAddress: string;
   userAgent: string;
-  location?: GeoLocation;
+  location?: any;
 }
