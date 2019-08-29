@@ -32,8 +32,16 @@ export const sendError = (error: string) => {
   if (error.includes("/")) {
     let status = parseInt(error.split("/")[0]);
     if (isNaN(status)) status = 500;
-    const code = error.split("/")[1];
-    return { status, code } as HTTPError;
+    let code = error.split("/")[1];
+    let message;
+    if (code.includes("__MESSAGE__")) {
+      const data = code.split("__MESSAGE__");
+      code = data[0];
+      try {
+        message = Buffer.from(data[1], "base64").toString();
+      } catch (error) {}
+    }
+    return { status, code, message } as HTTPError;
   }
   console.log("Backup error", error);
   return { status: 500, code: error } as HTTPError;
