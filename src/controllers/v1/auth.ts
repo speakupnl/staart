@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import {
-  Get,
   Controller,
-  Put,
+  Post,
   ClassWrapper,
   ClassMiddleware
 } from "@overnightjs/core";
@@ -14,7 +13,7 @@ import { createKeyCloakUser } from "../../helpers/keycloak";
 @ClassMiddleware(bruteForceHandler)
 @ClassWrapper(asyncHandler)
 export class AuthController {
-  @Put("users")
+  @Post("register")
   async registerWithKeyCloak(req: Request, res: Response) {
     res.json(await createKeyCloakUser(req.body));
   }
