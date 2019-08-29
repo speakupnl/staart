@@ -4,15 +4,15 @@
 [![Dev dependencies](https://img.shields.io/david/dev/o15y/staart.svg)](https://david-dm.org/o15y/staart)
 ![Type definitions](https://img.shields.io/badge/types-TypeScript-blue.svg)
 
-This repository contains the code for Speakup's upcoming developer platform's backend written in Node.js\/TypeScript. It's frontend is available at [speakupnl/staart-ui](https://github.com/speakup/staart-ui).
+This repository contains the code for Speakup's upcoming developer platform's backend written in Node.js\/TypeScript. It's frontend is available at [speakupnl/staart-ui](https://github.com/speakupnl/staart-ui).
 
-This project is based on [Staart](https://github.com/o15y/staart).
+This project is based on [Staart](https://github.com/o15y/staart). Instead of Staart's authentication and API management tools, it uses KeyCloak and an API gateway managed by Speakup.
 
 **⚠️ WARNING:** This repository is currently in development and will contain breaking changes. Do not use it in production.
 
 ## 🛠 Endpoints
 
-The base URL for these endpoints is `https://speakup-staart.caprover.oswaldlabs.com/v1/`
+The base URL for these endpoints is `https://speakup-staart.caprover.oswaldlabs.com/v1/` while in development. When ready, this base URL will be moved.
 
 ### Users
 
