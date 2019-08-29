@@ -79,7 +79,7 @@ export const keyCloakRemoveUserFromGroup = async (
   return await speakHub.users.delFromGroup({ id, groupId });
 };
 
-export const keyCloakGetGroups = async () => {
+export const keyCloakListGroups = async () => {
   return await speakHub.groups.find();
 };
 
@@ -89,6 +89,10 @@ export const keyCloakCreateGroup = async (group: GroupRepresentation) => {
 
 export const keyCloakGetGroup = async (id: string) => {
   return await speakHub.groups.findOne({ id });
+};
+
+export const keyCloakGetGroupMembers = async (id: string) => {
+  return await speakHub.groups.listMembers({ id });
 };
 
 export const keyCloakUpdateGroup = async (id: string, data: KeyValue) => {
@@ -107,7 +111,7 @@ setInterval(async () => {
    *
    * https://github.com/DefinitelyTyped/DefinitelyTyped/pull/37971
    */
-  speakHub.auth({
+  console.log({
     username: process.env.EXAMPLE_USERNAME as string,
     password: process.env.EXAMPLE_PASSWORD as string,
     grantType: "password",

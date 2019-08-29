@@ -27,6 +27,18 @@ The base URL for these endpoints is `https://speakup-staart.caprover.oswaldlabs.
 | `GET /users/:id/groups` | Get a user's group memberships |
 | `DELETE /users/:id/groups/:groupId` | Remove a user from a group |
 
+### Teams
+
+| Endpoint | Method |
+| - | - |
+| `GET /groups` | List of all teams (admin only) |
+| `GET /groups/:id` | Get a team's details |
+| `PATCH /groups/:id` | Update a team's details |
+| `DELETE /groups/:id` | Delete a team |
+| `GET /groups/:id/members` | List a team's members |
+| `PUT /groups/:id/members/:userId` | Add a user to a team |
+| `DELETE /groups/:id/members/:userId` | Remove a user from a team |
+
 ## 📄 License
 
 For now, this project is not available under an open-source license.

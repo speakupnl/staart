@@ -148,6 +148,7 @@ export enum NotificationCategories {
 export enum OrgScopes {
   READ_ORG = "org:read",
   UPDATE_ORG = "org:update",
+  CREATE_ORG = "org:create",
   DELETE_ORG = "org:delete",
   READ_ORG_BILLING = "org:billing:read",
   UPDATE_ORG_BILLING = "org:billing:update",
