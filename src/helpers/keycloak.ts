@@ -25,13 +25,16 @@ const keyCloakTry = async (f: Function) => {
   try {
     return await f();
   } catch (error) {
-    if (typeof error === "object" && error.response && error.response.data)
+    if (error.response && error.response.status && error.response.data) {
       throw new Error(
-        `${error.response.status}/keycloak-error__MESSAGE__${Buffer.from(
-          error.response.data
-        ).toString("base64")}`
+        `${error.response.status}/${
+          typeof error.response.data === "string"
+            ? error.response.data
+            : error.response.data.errorMessage || "internal-server-error"
+        }`
       );
-    throw new Error(error);
+    }
+    throw new Error("500/internal-server-error");
   }
 };
 
