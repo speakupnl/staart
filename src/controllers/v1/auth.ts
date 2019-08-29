@@ -7,7 +7,7 @@ import {
 } from "@overnightjs/core";
 import { bruteForceHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
-import { createKeyCloakUser } from "../../helpers/keycloak";
+import { keyCloakCreateUser } from "../../helpers/keycloak";
 
 @Controller("v1/auth")
 @ClassMiddleware(bruteForceHandler)
@@ -15,6 +15,6 @@ import { createKeyCloakUser } from "../../helpers/keycloak";
 export class AuthController {
   @Post("register")
   async registerWithKeyCloak(req: Request, res: Response) {
-    res.json(await createKeyCloakUser(req.body));
+    res.json(await keyCloakCreateUser(req.body));
   }
 }
