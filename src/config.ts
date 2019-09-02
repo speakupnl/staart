@@ -67,10 +67,16 @@ export const ALLOW_DISPOSABLE_EMAILS = !!process.env.DISPOSABLE_EMAIL;
 export const JWT_SECRET = process.env.JWT_SECRET || "staart";
 export const JWT_ISSUER = process.env.JWT_ISSUER || "staart";
 export const SERVICE_2FA = process.env.SERVICE_2FA || "staart";
+
+// KeyCloak integration
 export const KEYCLOAK_BASE_URL =
   process.env.KEYCLOAK_BASE_URL || "http://localhost:8080";
 export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || "admin-cli";
 export const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || "apidev";
+export const KEYCLOAK_USER_CLIENT_ID =
+  process.env.KEYCLOAK_USER_CLIENT_ID || "test-client";
+export const KEYCLOAK_USER_CLIENT_SECRET =
+  process.env.KEYCLOAK_USER_CLIENT_SECRET || "";
 
 export const TOKEN_EXPIRY_EMAIL_VERIFICATION =
   process.env.TOKEN_EXPIRY_EMAIL_VERIFICATION || "7d";

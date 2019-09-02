@@ -1,7 +1,9 @@
 import {
   KEYCLOAK_BASE_URL,
   KEYCLOAK_CLIENT_ID,
-  KEYCLOAK_REALM
+  KEYCLOAK_REALM,
+  KEYCLOAK_USER_CLIENT_SECRET,
+  KEYCLOAK_USER_CLIENT_ID
 } from "../config";
 import KcAdminClient from "keycloak-admin";
 import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
@@ -9,6 +11,8 @@ import { KeyValue } from "../interfaces/general";
 import GroupRepresentation from "keycloak-admin/lib/defs/groupRepresentation";
 import jwt from "jsonwebtoken";
 import { ErrorCode } from "../interfaces/enum";
+import Axios from "axios";
+import { stringify } from "query-string";
 
 interface JWT {
   jti: string;
@@ -61,23 +65,24 @@ export const keyCloakAuthenticate = async () => {
 
 export const keyCloakLoginUser = async (username: string, password: string) => {
   return await keyCloakTry(async () => {
-    const userHub = new KcAdminClient({
-      baseUrl: KEYCLOAK_BASE_URL,
-      realmName: KEYCLOAK_REALM
-    });
     try {
-      await userHub.auth({
-        username,
-        password,
-        grantType: "password",
-        clientId: KEYCLOAK_CLIENT_ID
-      });
-      return {
-        accessToken: userHub.accessToken,
-        refreshToken: userHub.refreshToken
-      };
+      const result = await Axios.post(
+        `${KEYCLOAK_BASE_URL}/realms/apidev/protocol/openid-connect/token`,
+        stringify({
+          grant_type: "password",
+          client_id: KEYCLOAK_USER_CLIENT_ID,
+          client_secret: KEYCLOAK_USER_CLIENT_SECRET,
+          username,
+          password
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        }
+      );
+      return result.data;
     } catch (error) {
-      console.log(error.response);
       throw new Error(ErrorCode.INVALID_LOGIN);
     }
   });
