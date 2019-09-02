@@ -8,6 +8,7 @@ import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
 import { KeyValue } from "../interfaces/general";
 import GroupRepresentation from "keycloak-admin/lib/defs/groupRepresentation";
 import jwt from "jsonwebtoken";
+import { ErrorCode } from "../interfaces/enum";
 
 interface JWT {
   jti: string;
@@ -23,7 +24,10 @@ const speakHub = new KcAdminClient({
 const keyCloakTry = async (f: Function) => {
   await keyCloakAuthenticate();
   try {
-    return await f();
+    const data = await f();
+    if (typeof data === "object" && Array.isArray(data))
+      return { data, hasMore: false };
+    return data;
   } catch (error) {
     if (error.response && error.response.status && error.response.data) {
       throw new Error(
@@ -34,6 +38,7 @@ const keyCloakTry = async (f: Function) => {
         }`
       );
     }
+    console.log("falling back", error);
     throw new Error("500/internal-server-error");
   }
 };
@@ -52,9 +57,33 @@ export const keyCloakAuthenticate = async () => {
   });
 };
 
+export const keyCloakLoginUser = async (username: string, password: string) => {
+  return await keyCloakTry(async () => {
+    const userHub = new KcAdminClient({
+      baseUrl: KEYCLOAK_BASE_URL,
+      realmName: KEYCLOAK_REALM
+    });
+    try {
+      await userHub.auth({
+        username,
+        password,
+        grantType: "password",
+        clientId: KEYCLOAK_CLIENT_ID
+      });
+      return {
+        accessToken: userHub.accessToken,
+        refreshToken: userHub.refreshToken
+      };
+    } catch (error) {
+      throw new Error(ErrorCode.INVALID_LOGIN);
+    }
+  });
+};
+
 export const keyCloakCreateUser = async (user: UserRepresentation) => {
   return await keyCloakTry(async () => {
     user.username = user.username || user.email;
+    user.enabled = true;
     const result = await speakHub.users.create({
       ...user,
       realm: KEYCLOAK_REALM
