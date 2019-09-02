@@ -38,6 +38,8 @@ const keyCloakTry = async (f: Function) => {
         }`
       );
     }
+    if (error.toString().includes("__SAFE__"))
+      throw new Error(error.toString().replace("__SAFE__", ""));
     console.log("falling back", error);
     throw new Error("500/internal-server-error");
   }
