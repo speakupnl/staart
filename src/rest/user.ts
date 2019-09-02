@@ -15,10 +15,11 @@ import {
   UserScopes,
   AdminScopes,
   Templates,
-  ErrorCode
+  ErrorCode,
+  Tokens
 } from "../interfaces/enum";
 import { mail } from "../helpers/mail";
-import { passwordResetToken } from "../helpers/jwt";
+import { passwordResetToken, verifyToken } from "../helpers/jwt";
 
 export const listUsersForUser = async (tokenUser: any) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
@@ -82,9 +83,16 @@ export const removeUserFromGroupForUser = async (
 export const resetPasswordForUser = async (email: string) => {
   const user = await keyCloakGetUserByEmail(email);
   if (!user || !user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
-  console.log("Password reset for", user);
   await mail(email, Templates.PASSWORD_RESET, {
     ...user,
     token: await passwordResetToken(user.id)
   });
+};
+
+export const changePasswordForUser = async (
+  token: string,
+  password: string
+) => {
+  const user = await verifyToken(token, Tokens.PASSWORD_RESET);
+  await keyCloakUpdatePasswordOfUser(user.id, password);
 };

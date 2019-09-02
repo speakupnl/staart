@@ -77,12 +77,13 @@ export const keyCloakLoginUser = async (username: string, password: string) => {
         refreshToken: userHub.refreshToken
       };
     } catch (error) {
+      console.log(error.response);
       throw new Error(ErrorCode.INVALID_LOGIN);
     }
   });
 };
 
-export const keyCloakCreateUser = async (user: UserRepresentation) => {
+export const keyCloakCreateUser = async (user: any) => {
   return await keyCloakTry(async () => {
     user.username = user.username || user.email;
     user.enabled = true;
@@ -91,6 +92,7 @@ export const keyCloakCreateUser = async (user: UserRepresentation) => {
       realm: KEYCLOAK_REALM
     });
     await keyCloakSendEmailVerificationToUser(result.id);
+    await keyCloakUpdatePasswordOfUser(result.id, user.password);
     return result;
   });
 };
