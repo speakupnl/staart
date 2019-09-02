@@ -112,6 +112,17 @@ export const keyCloakGetUser = async (id: string) => {
   });
 };
 
+export const keyCloakGetUserByEmail = async (
+  email: string
+): Promise<UserRepresentation> => {
+  return await keyCloakTry(async () => {
+    return (await speakHub.users.find({
+      email,
+      realm: KEYCLOAK_REALM
+    }))[0];
+  });
+};
+
 export const keyCloakUpdateUser = async (id: string, data: KeyValue) => {
   return await keyCloakTry(async () => {
     return await speakHub.users.update({ id, realm: KEYCLOAK_REALM }, data);

@@ -8,6 +8,7 @@ import {
 import { bruteForceHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
 import { keyCloakCreateUser, keyCloakLoginUser } from "../../helpers/keycloak";
+import { resetPasswordForUser } from "../../rest/user";
 
 @Controller("v1/auth")
 @ClassMiddleware(bruteForceHandler)
@@ -21,5 +22,10 @@ export class AuthController {
   @Post("login")
   async loginWithKeyCloak(req: Request, res: Response) {
     res.json(await keyCloakLoginUser(req.body.username, req.body.password));
+  }
+
+  @Post("reset-password/request")
+  async requestPasswordReset(req: Request, res: Response) {
+    res.json(await resetPasswordForUser(req.body.email));
   }
 }

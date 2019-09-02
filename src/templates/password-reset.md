@@ -1,6 +1,6 @@
 # Reset your password
 
-Dear {{name}},
+Dear {{firstName}},
 
 Click on the following button to reset your password:
 

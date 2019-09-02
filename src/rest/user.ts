@@ -7,10 +7,18 @@ import {
   keyCloakGetUserGroups,
   keyCloakUpdatePasswordOfUser,
   keyCloakSendEmailVerificationToUser,
-  keyCloakRemoveUserFromGroup
+  keyCloakRemoveUserFromGroup,
+  keyCloakGetUserByEmail
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
-import { UserScopes, AdminScopes } from "../interfaces/enum";
+import {
+  UserScopes,
+  AdminScopes,
+  Templates,
+  ErrorCode
+} from "../interfaces/enum";
+import { mail } from "../helpers/mail";
+import { passwordResetToken } from "../helpers/jwt";
 
 export const listUsersForUser = async (tokenUser: any) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
@@ -69,4 +77,14 @@ export const removeUserFromGroupForUser = async (
 ) => {
   await can(tokenUser, UserScopes.DELETE_USER_MEMBERSHIPS, "user", id);
   return await keyCloakRemoveUserFromGroup(id, groupId);
+};
+
+export const resetPasswordForUser = async (email: string) => {
+  const user = await keyCloakGetUserByEmail(email);
+  if (!user || !user.id) throw new Error(ErrorCode.USER_NOT_FOUND);
+  console.log("Password reset for", user);
+  await mail(email, Templates.PASSWORD_RESET, {
+    ...user,
+    token: await passwordResetToken(user.id)
+  });
 };

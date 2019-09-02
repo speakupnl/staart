@@ -41,6 +41,8 @@ export const sendError = (error: string) => {
         message = Buffer.from(data[1], "base64").toString();
       } catch (error) {}
     }
+    if (message && message.includes("__SAFE__"))
+      message = message.replace("__SAFE__", "");
     return { status, code, message } as HTTPError;
   }
   console.log("Backup error", error);
