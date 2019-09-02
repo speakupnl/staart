@@ -9,7 +9,7 @@ import KcAdminClient from "keycloak-admin";
 import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
 import { KeyValue } from "../interfaces/general";
 import GroupRepresentation from "keycloak-admin/lib/defs/groupRepresentation";
-import jwt from "jsonwebtoken";
+import jwt, { decode } from "jsonwebtoken";
 import { ErrorCode } from "../interfaces/enum";
 import Axios from "axios";
 import { stringify } from "query-string";
@@ -81,7 +81,17 @@ export const keyCloakLoginUser = async (username: string, password: string) => {
           }
         }
       );
-      return result.data;
+      const data = result.data;
+      if (!data.access_token) throw new Error();
+      const userInfo = decode(data.access_token) as any;
+      return {
+        token: data.access_token,
+        refresh: data.refresh_token,
+        user:
+          userInfo && userInfo.email
+            ? await keyCloakGetUserByEmail(userInfo.email)
+            : undefined
+      };
     } catch (error) {
       throw new Error(ErrorCode.INVALID_LOGIN);
     }
