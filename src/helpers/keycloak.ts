@@ -102,12 +102,17 @@ export const keyCloakCreateUser = async (user: any) => {
   return await keyCloakTry(async () => {
     user.username = user.username || user.email;
     user.enabled = true;
+    const password = user.password;
+    delete user.password;
     const result = await speakHub.users.create({
       ...user,
-      realm: KEYCLOAK_REALM
+      realm: KEYCLOAK_REALM,
+      attributes: {
+        createdBy: "staart"
+      }
     });
     await keyCloakSendEmailVerificationToUser(result.id);
-    await keyCloakUpdatePasswordOfUser(result.id, user.password);
+    await keyCloakUpdatePasswordOfUser(result.id, password);
     return result;
   });
 };
@@ -212,7 +217,11 @@ export const keyCloakListGroups = async () => {
 
 export const keyCloakCreateGroup = async (group: GroupRepresentation) => {
   return await keyCloakTry(async () => {
-    return await speakHub.groups.create({ ...group, realm: KEYCLOAK_REALM });
+    return await speakHub.groups.create({
+      ...group,
+      realm: KEYCLOAK_REALM,
+      attributes: { createdBy: "staart" }
+    });
   });
 };
 
