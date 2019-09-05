@@ -12,10 +12,15 @@ import {
   keyCloakCreateUser
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
-import { OrgScopes, AdminScopes } from "../interfaces/enum";
+import { OrgScopes, AdminScopes, ErrorCode } from "../interfaces/enum";
 import { TokenUser } from "../interfaces/tables/user";
 import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
 import { resetPasswordForUser } from "./user";
+import {
+  getStripeCustomer,
+  updateStripeCustomer,
+  createStripeCustomer
+} from "../crud/billing";
 
 export const listGroupsForUser = async (tokenUser: TokenUser) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
@@ -103,4 +108,50 @@ export const removeUserFromGroupForUser = async (
 ) => {
   await can(tokenUser, OrgScopes.CREATE_ORG_MEMBERSHIPS, "group", id);
   return await keyCloakRemoveUserFromGroup(userId, id);
+};
+
+export const getOrganizationBillingForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_BILLING, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeCustomer(
+        organization.attributes.stripeCustomerId[0]
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const updateOrganizationBillingForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  data: any
+) => {
+  if (
+    await can(tokenUser, OrgScopes.UPDATE_ORG_BILLING, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      return await updateStripeCustomer(
+        organization.attributes.stripeCustomerId[0],
+        data
+      );
+    } else {
+      return await createStripeCustomer(organizationId, data);
+    }
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };

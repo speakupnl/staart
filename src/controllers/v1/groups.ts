@@ -17,7 +17,9 @@ import {
   removeUserFromGroupForUser,
   getGroupMembersForUser,
   createGroupForUser,
-  addUserToGroupByNameEmailForUser
+  addUserToGroupByNameEmailForUser,
+  getOrganizationBillingForUser,
+  updateOrganizationBillingForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -89,6 +91,28 @@ export class AuthController {
         res.locals.token,
         req.params.id,
         req.params.userId
+      )
+    );
+  }
+
+  /**
+   * Stripe and billing
+   */
+
+  @Get(":id/billing")
+  async getBilling(req: Request, res: Response) {
+    res.json(
+      await getOrganizationBillingForUser(res.locals.token, req.params.id)
+    );
+  }
+
+  @Patch(":id/billing")
+  async updateBilling(req: Request, res: Response) {
+    res.json(
+      await updateOrganizationBillingForUser(
+        res.locals.token,
+        req.params.id,
+        req.body
       )
     );
   }
