@@ -7,11 +7,14 @@ import {
   keyCloakCreateGroup,
   keyCloakAddUserToGroup,
   keyCloakRemoveUserFromGroup,
-  keyCloakGetGroupMembers
+  keyCloakGetGroupMembers,
+  keyCloakGetUserByEmail,
+  keyCloakCreateUser
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import { OrgScopes, AdminScopes } from "../interfaces/enum";
 import { TokenUser } from "../interfaces/tables/user";
+import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
 
 export const listGroupsForUser = async (tokenUser: TokenUser) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
@@ -25,7 +28,6 @@ export const createGroupForUser = async (
   await can(tokenUser, OrgScopes.CREATE_ORG, "group");
   const result = await keyCloakCreateGroup(data);
   await keyCloakAddUserToGroup(tokenUser.id, result.id);
-  console.log("Added user to group sucessfully");
   return result;
 };
 
@@ -65,6 +67,31 @@ export const addUserToGroupForUser = async (
 ) => {
   await can(tokenUser, OrgScopes.CREATE_ORG_MEMBERSHIPS, "group", id);
   return await keyCloakAddUserToGroup(userId, id);
+};
+
+export const addUserToGroupByNameEmailForUser = async (
+  tokenUser: TokenUser,
+  id: string,
+  email: string,
+  firstName: string,
+  lastName: string
+) => {
+  await can(tokenUser, OrgScopes.CREATE_ORG_MEMBERSHIPS, "group", id);
+  let user: UserRepresentation | null = null;
+  try {
+    user = await keyCloakGetUserByEmail(email);
+  } catch (error) {}
+  if (user && user.id) {
+    return await keyCloakAddUserToGroup(user.id, id);
+  } else {
+    // create new user
+    const newUser = await keyCloakCreateUser({
+      email,
+      firstName,
+      lastName
+    });
+    return await keyCloakAddUserToGroup(newUser.id, id);
+  }
 };
 
 export const removeUserFromGroupForUser = async (

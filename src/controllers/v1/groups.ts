@@ -16,7 +16,8 @@ import {
   addUserToGroupForUser,
   removeUserFromGroupForUser,
   getGroupMembersForUser,
-  createGroupForUser
+  createGroupForUser,
+  addUserToGroupByNameEmailForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -55,6 +56,19 @@ export class AuthController {
   @Get(":id/members")
   async getGroupMembers(req: Request, res: Response) {
     res.json(await getGroupMembersForUser(res.locals.token, req.params.id));
+  }
+
+  @Put(":id/members")
+  async addUserToGroupByNameEmail(req: Request, res: Response) {
+    res.json(
+      await addUserToGroupByNameEmailForUser(
+        res.locals.token,
+        req.params.id,
+        req.body.email,
+        req.body.firstName,
+        req.body.lastName
+      )
+    );
   }
 
   @Put(":id/members/:userId")

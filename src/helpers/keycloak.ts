@@ -135,7 +135,9 @@ export const keyCloakRefreshToken = async (token: string, username: string) => {
   });
 };
 
-export const keyCloakCreateUser = async (user: any) => {
+export const keyCloakCreateUser = async (
+  user: any
+): Promise<{ id: string }> => {
   return await keyCloakTry(async () => {
     user.username = user.username || user.email;
     user.enabled = true;
@@ -149,7 +151,7 @@ export const keyCloakCreateUser = async (user: any) => {
       }
     });
     await keyCloakSendEmailVerificationToUser(result.id);
-    await keyCloakUpdatePasswordOfUser(result.id, password);
+    if (password) await keyCloakUpdatePasswordOfUser(result.id, password);
     return result;
   });
 };
@@ -217,7 +219,9 @@ export const keyCloakDeleteUser = async (id: string) => {
   });
 };
 
-export const keyCloakGetUserGroups = async (id: string) => {
+export const keyCloakGetUserGroups = async (
+  id: string
+): Promise<{ data: GroupRepresentation[] }> => {
   return await keyCloakTry(async () => {
     return await speakHub.users.listGroups({ id, realm: KEYCLOAK_REALM });
   });
@@ -259,7 +263,7 @@ export const keyCloakCreateGroup = async (
     return await speakHub.groups.create({
       ...group,
       realm: KEYCLOAK_REALM,
-      attributes: { createdBy: "staart" }
+      attributes: { createdBy: ["staart"] }
     });
   });
 };
