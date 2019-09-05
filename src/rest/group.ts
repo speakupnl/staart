@@ -15,6 +15,7 @@ import { can } from "../helpers/authorization";
 import { OrgScopes, AdminScopes } from "../interfaces/enum";
 import { TokenUser } from "../interfaces/tables/user";
 import UserRepresentation from "keycloak-admin/lib/defs/userRepresentation";
+import { resetPasswordForUser } from "./user";
 
 export const listGroupsForUser = async (tokenUser: TokenUser) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
@@ -90,6 +91,7 @@ export const addUserToGroupByNameEmailForUser = async (
       firstName,
       lastName
     });
+    await resetPasswordForUser(email);
     return await keyCloakAddUserToGroup(newUser.id, id);
   }
 };
