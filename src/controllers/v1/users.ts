@@ -54,7 +54,8 @@ export class AuthController {
       await updatePasswordOfUserForUser(
         res.locals.token,
         req.params.id,
-        req.body.password
+        req.body.oldPassword,
+        req.body.newPassword
       )
     );
   }

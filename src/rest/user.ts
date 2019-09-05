@@ -8,7 +8,8 @@ import {
   keyCloakUpdatePasswordOfUser,
   keyCloakSendEmailVerificationToUser,
   keyCloakRemoveUserFromGroup,
-  keyCloakGetUserByEmail
+  keyCloakGetUserByEmail,
+  keyCloakLoginUser
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import {
@@ -51,10 +52,17 @@ export const deleteUserForUser = async (tokenUser: TokenUser, id: string) => {
 export const updatePasswordOfUserForUser = async (
   tokenUser: TokenUser,
   id: string,
-  password: string
+  currentPassword: string,
+  newPassword: string
 ) => {
   await can(tokenUser, UserScopes.UPDATE_USER, "user", id);
-  await keyCloakUpdatePasswordOfUser(id, password);
+  console.log(tokenUser);
+  try {
+    await keyCloakLoginUser(tokenUser.preferred_username, currentPassword);
+  } catch (error) {
+    throw new Error(ErrorCode.INCORRECT_PASSWORD);
+  }
+  await keyCloakUpdatePasswordOfUser(id, newPassword);
   return { updated: true, message: "password-updated" };
 };
 

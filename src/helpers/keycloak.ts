@@ -93,6 +93,7 @@ export const keyCloakLoginUser = async (username: string, password: string) => {
             : undefined
       };
     } catch (error) {
+      console.log("Got", error);
       throw new Error(ErrorCode.INVALID_LOGIN);
     }
   });
