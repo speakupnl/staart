@@ -29,6 +29,7 @@ export const safeError = (error: string) => {
  * Send an HTTPError object
  */
 export const sendError = (error: string) => {
+  error = error.replace("__SAFE__", "");
   if (error.includes("/")) {
     let status = parseInt(error.split("/")[0]);
     if (isNaN(status)) status = 500;

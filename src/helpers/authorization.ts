@@ -4,17 +4,17 @@ import {
   UserScopes,
   OrgScopes
 } from "../interfaces/enum";
+import { TokenUser } from "../interfaces/tables/user";
 
 export const can = async (
-  user: any,
+  user: TokenUser,
   action: AdminScopes | UserScopes | OrgScopes,
   targetType: "user" | "admin" | "group",
   targetId?: string
 ) => {
-  // You can do anything to yourself
-  if (targetType === "user" && user && user.id === targetId) return true;
+  if (!user) throw new Error(ErrorCode.INVALID_TOKEN);
 
-  return true;
+  if (user.id === targetId) return true;
 
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };

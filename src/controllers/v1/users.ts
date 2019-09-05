@@ -6,7 +6,8 @@ import {
   ClassMiddleware,
   Patch,
   Delete,
-  Post
+  Post,
+  Put
 } from "@overnightjs/core";
 import {
   listUsersForUser,
@@ -47,7 +48,7 @@ export class AuthController {
     res.json(await deleteUserForUser(res.locals.token, req.params.id));
   }
 
-  @Post(":id/password")
+  @Put(":id/password")
   async updateUserPassword(req: Request, res: Response) {
     res.json(
       await updatePasswordOfUserForUser(
