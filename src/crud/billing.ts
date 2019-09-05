@@ -1,7 +1,7 @@
 import Stripe, { subscriptions, IList } from "stripe";
 import { STRIPE_SECRET_KEY, STRIPE_PRODUCT_ID } from "../config";
 import { ErrorCode } from "../interfaces/enum";
-import { keyCloakUpdateGroup } from "../helpers/keycloak";
+import { keyCloakUpdateGroup, keyCloakGetGroup } from "../helpers/keycloak";
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 const cleanStripeResponse = (response: IList<any>) => {
@@ -35,11 +35,11 @@ export const createStripeCustomer = async (
     ...customer,
     metadata: { organizationId }
   });
-  await keyCloakUpdateGroup(organizationId, {
-    attributes: {
-      stripeCustomerId: [created.id]
-    }
-  });
+  const attributes = {
+    ...(await keyCloakGetGroup(organizationId)).attributes,
+    stripeCustomerId: [created.id]
+  };
+  await keyCloakUpdateGroup(organizationId, { attributes });
   return { success: true, message: "billing-subscription-created" };
 };
 

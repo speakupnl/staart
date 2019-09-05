@@ -268,7 +268,9 @@ export const keyCloakCreateGroup = async (
   });
 };
 
-export const keyCloakGetGroup = async (id: string) => {
+export const keyCloakGetGroup = async (
+  id: string
+): Promise<GroupRepresentation> => {
   return await keyCloakTry(async () => {
     return await speakHub.groups.findOne({ id, realm: KEYCLOAK_REALM });
   });
