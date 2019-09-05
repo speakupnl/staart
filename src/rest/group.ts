@@ -11,29 +11,39 @@ import {
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import { OrgScopes, AdminScopes } from "../interfaces/enum";
+import { TokenUser } from "../interfaces/tables/user";
 
-export const listGroupsForUser = async (tokenUser: any) => {
+export const listGroupsForUser = async (tokenUser: TokenUser) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
   return await keyCloakListGroups();
 };
 
-export const createGroupForUser = async (tokenUser: any, data: KeyValue) => {
+export const createGroupForUser = async (
+  tokenUser: TokenUser,
+  data: KeyValue
+) => {
   await can(tokenUser, OrgScopes.CREATE_ORG, "group");
-  return await keyCloakCreateGroup(data);
+  const result = await keyCloakCreateGroup(data);
+  await keyCloakAddUserToGroup(tokenUser.id, result.id);
+  console.log("Added user to group sucessfully");
+  return result;
 };
 
-export const getGroupForUser = async (tokenUser: any, id: string) => {
+export const getGroupForUser = async (tokenUser: TokenUser, id: string) => {
   await can(tokenUser, OrgScopes.READ_ORG, "group", id);
   return await keyCloakGetGroup(id);
 };
 
-export const getGroupMembersForUser = async (tokenUser: any, id: string) => {
+export const getGroupMembersForUser = async (
+  tokenUser: TokenUser,
+  id: string
+) => {
   await can(tokenUser, OrgScopes.READ_ORG, "group", id);
   return await keyCloakGetGroupMembers(id);
 };
 
 export const updateGroupForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   data: KeyValue
 ) => {
@@ -42,14 +52,14 @@ export const updateGroupForUser = async (
   return { updated: true, message: "user-updated" };
 };
 
-export const deleteGroupForUser = async (tokenUser: any, id: string) => {
+export const deleteGroupForUser = async (tokenUser: TokenUser, id: string) => {
   await can(tokenUser, OrgScopes.DELETE_ORG, "group", id);
   await keyCloakDeleteGroup(id);
   return { deleted: true, message: "user-deleted" };
 };
 
 export const addUserToGroupForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   userId: string
 ) => {
@@ -58,7 +68,7 @@ export const addUserToGroupForUser = async (
 };
 
 export const removeUserFromGroupForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   userId: string
 ) => {

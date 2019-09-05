@@ -21,6 +21,7 @@ import {
 import { ApiKey } from "../interfaces/tables/organization";
 import { joiValidate, includesDomainInCommaList } from "./utils";
 import { trackUrl } from "./tracking";
+import { decode } from "jsonwebtoken";
 const store = new Brute.MemoryStore();
 const bruteForce = new Brute(store, {
   freeRetries: BRUTE_FREE_RETRIES,
@@ -96,6 +97,18 @@ export const authHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  let userJwt = req.get("Authorization");
+  if (userJwt) {
+    if (userJwt.startsWith("Bearer ")) userJwt = userJwt.replace("Bearer ", "");
+    const decoded = decode(userJwt);
+    if (decoded && typeof decoded === "object") {
+      if (decoded.exp * 1000 < new Date().getTime()) {
+        // Token has expired
+      }
+      decoded.id = decoded.sub;
+      res.locals.token = decoded;
+    }
+  }
   next();
 };
 

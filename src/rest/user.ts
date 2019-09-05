@@ -20,19 +20,20 @@ import {
 } from "../interfaces/enum";
 import { mail } from "../helpers/mail";
 import { passwordResetToken, verifyToken } from "../helpers/jwt";
+import { TokenUser } from "../interfaces/tables/user";
 
-export const listUsersForUser = async (tokenUser: any) => {
+export const listUsersForUser = async (tokenUser: TokenUser) => {
   await can(tokenUser, AdminScopes.READ_ALL_USERS, "admin");
   return await keyCloakListUsers();
 };
 
-export const getUserForUser = async (tokenUser: any, id: string) => {
+export const getUserForUser = async (tokenUser: TokenUser, id: string) => {
   await can(tokenUser, UserScopes.READ_USER, "user", id);
   return await keyCloakGetUser(id);
 };
 
 export const updateUserForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   data: KeyValue
 ) => {
@@ -41,14 +42,14 @@ export const updateUserForUser = async (
   return { updated: true, message: "user-updated" };
 };
 
-export const deleteUserForUser = async (tokenUser: any, id: string) => {
+export const deleteUserForUser = async (tokenUser: TokenUser, id: string) => {
   await can(tokenUser, UserScopes.DELETE_USER, "user", id);
   await keyCloakDeleteUser(id);
   return { deleted: true, message: "user-deleted" };
 };
 
 export const updatePasswordOfUserForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   password: string
 ) => {
@@ -58,7 +59,7 @@ export const updatePasswordOfUserForUser = async (
 };
 
 export const sendEmailVerificationToUserForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string
 ) => {
   await can(tokenUser, UserScopes.RESEND_USER_EMAIL_VERIFICATION, "user", id);
@@ -66,13 +67,16 @@ export const sendEmailVerificationToUserForUser = async (
   return { sent: true, message: "email-sent" };
 };
 
-export const getUserGroupsForUser = async (tokenUser: any, id: string) => {
+export const getUserGroupsForUser = async (
+  tokenUser: TokenUser,
+  id: string
+) => {
   await can(tokenUser, UserScopes.READ_USER_MEMBERSHIPS, "user", id);
   return await keyCloakGetUserGroups(id);
 };
 
 export const removeUserFromGroupForUser = async (
-  tokenUser: any,
+  tokenUser: TokenUser,
   id: string,
   groupId: string
 ) => {
