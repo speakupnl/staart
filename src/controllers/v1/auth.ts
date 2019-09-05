@@ -9,10 +9,16 @@ import {
 import Joi from "@hapi/joi";
 import { bruteForceHandler, validator } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
-import { keyCloakCreateUser, keyCloakLoginUser } from "../../helpers/keycloak";
+import {
+  keyCloakCreateUser,
+  keyCloakLoginUser,
+  keyCloakRefreshToken
+} from "../../helpers/keycloak";
 import { resetPasswordForUser, changePasswordForUser } from "../../rest/user";
 import { verifyToken } from "../../helpers/jwt";
 import { ErrorCode } from "../../interfaces/enum";
+import { decode } from "jsonwebtoken";
+import { TokenUser } from "../../interfaces/tables/user";
 
 @Controller("v1/auth")
 @ClassMiddleware(bruteForceHandler)
@@ -48,6 +54,24 @@ export class AuthController {
   @Post("login")
   async loginWithKeyCloak(req: Request, res: Response) {
     res.json(await keyCloakLoginUser(req.body.username, req.body.password));
+  }
+
+  @Post("refresh")
+  @Middleware(
+    validator(
+      {
+        token: Joi.string().required()
+      },
+      "body"
+    )
+  )
+  async refreshKeyCloakToken(req: Request, res: Response) {
+    res.json(
+      await keyCloakRefreshToken(
+        req.body.token,
+        (decode(req.body.token) as TokenUser).sub
+      )
+    );
   }
 
   @Post("reset-password/request")

@@ -98,6 +98,41 @@ export const keyCloakLoginUser = async (username: string, password: string) => {
   });
 };
 
+export const keyCloakRefreshToken = async (token: string, username: string) => {
+  return await keyCloakTry(async () => {
+    try {
+      const result = await Axios.post(
+        `${KEYCLOAK_BASE_URL}/realms/apidev/protocol/openid-connect/token`,
+        stringify({
+          grant_type: "refresh_token",
+          client_id: KEYCLOAK_USER_CLIENT_ID,
+          client_secret: KEYCLOAK_USER_CLIENT_SECRET,
+          refresh_token: token,
+          username
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        }
+      );
+      const data = result.data;
+      if (!data.access_token) throw new Error();
+      const userInfo = decode(data.access_token) as any;
+      return {
+        token: data.access_token,
+        refresh: data.refresh_token,
+        user:
+          userInfo && userInfo.email
+            ? await keyCloakGetUserByEmail(userInfo.email)
+            : undefined
+      };
+    } catch (error) {
+      throw new Error(ErrorCode.INVALID_TOKEN);
+    }
+  });
+};
+
 export const keyCloakCreateUser = async (user: any) => {
   return await keyCloakTry(async () => {
     user.username = user.username || user.email;
