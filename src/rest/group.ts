@@ -19,7 +19,19 @@ import { resetPasswordForUser } from "./user";
 import {
   getStripeCustomer,
   updateStripeCustomer,
-  createStripeCustomer
+  createStripeCustomer,
+  getStripeInvoices,
+  getStripeInvoice,
+  getStripeSources,
+  getStripeSource,
+  getStripeSubscriptions,
+  getStripeSubscription,
+  updateStripeSubscription,
+  createStripeSubscription,
+  getStripeProductPricing,
+  deleteStripeSource,
+  updateStripeSource,
+  createStripeSource
 } from "../crud/billing";
 
 export const listGroupsForUser = async (tokenUser: TokenUser) => {
@@ -152,6 +164,302 @@ export const updateOrganizationBillingForUser = async (
     } else {
       return await createStripeCustomer(organizationId, data);
     }
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationInvoicesForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  params: KeyValue
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_INVOICES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeInvoices(
+        organization.attributes.stripeCustomerId[0],
+        params
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationInvoiceForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  invoiceId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_INVOICES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeInvoice(
+        organization.attributes.stripeCustomerId[0],
+        invoiceId
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationSourcesForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  params: KeyValue
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_SOURCES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeSources(
+        organization.attributes.stripeCustomerId[0],
+        params
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationSourceForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  sourceId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_SOURCES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeSource(
+        organization.attributes.stripeCustomerId[0],
+        sourceId
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationSubscriptionsForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  params: KeyValue
+) => {
+  if (
+    await can(
+      tokenUser,
+      OrgScopes.READ_ORG_SUBSCRIPTIONS,
+      "group",
+      organizationId
+    )
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeSubscriptions(
+        organization.attributes.stripeCustomerId[0],
+        params
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationSubscriptionForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  subscriptionId: string
+) => {
+  if (
+    await can(
+      tokenUser,
+      OrgScopes.READ_ORG_SUBSCRIPTIONS,
+      "group",
+      organizationId
+    )
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    )
+      return await getStripeSubscription(
+        organization.attributes.stripeCustomerId[0],
+        subscriptionId
+      );
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const updateOrganizationSubscriptionForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  subscriptionId: string,
+  data: KeyValue
+) => {
+  if (
+    await can(
+      tokenUser,
+      OrgScopes.UPDATE_ORG_SUBSCRIPTIONS,
+      "group",
+      organizationId
+    )
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      const result = await updateStripeSubscription(
+        organization.attributes.stripeCustomerId[0],
+        subscriptionId,
+        data
+      );
+      return result;
+    }
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const createOrganizationSubscriptionForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  params: { plan: string; [index: string]: any }
+) => {
+  if (
+    await can(
+      tokenUser,
+      OrgScopes.CREATE_ORG_SUBSCRIPTIONS,
+      "group",
+      organizationId
+    )
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      const result = await createStripeSubscription(
+        organization.attributes.stripeCustomerId[0],
+        params
+      );
+      return result;
+    }
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationPricingPlansForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string
+) => {
+  if (await can(tokenUser, OrgScopes.READ_ORG_PLANS, "group", organizationId))
+    return await getStripeProductPricing();
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const deleteOrganizationSourceForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  sourceId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.DELETE_ORG_SOURCES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      const result = await deleteStripeSource(
+        organization.attributes.stripeCustomerId[0],
+        sourceId
+      );
+      return result;
+    }
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const updateOrganizationSourceForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  sourceId: string,
+  data: any
+) => {
+  if (
+    await can(tokenUser, OrgScopes.UPDATE_ORG_SOURCES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      const result = await updateStripeSource(
+        organization.attributes.stripeCustomerId[0],
+        sourceId,
+        data
+      );
+      return result;
+    }
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
+  }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const createOrganizationSourceForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  card: any
+) => {
+  if (
+    await can(tokenUser, OrgScopes.CREATE_ORG_SOURCES, "group", organizationId)
+  ) {
+    const organization = await keyCloakGetGroup(organizationId);
+    if (
+      organization.attributes &&
+      organization.attributes.stripeCustomerId &&
+      organization.attributes.stripeCustomerId.length
+    ) {
+      const result = await createStripeSource(
+        organization.attributes.stripeCustomerId[0],
+        card
+      );
+      return result;
+    }
+    throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
   }
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };
