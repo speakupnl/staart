@@ -9,7 +9,8 @@ import {
   keyCloakSendEmailVerificationToUser,
   keyCloakRemoveUserFromGroup,
   keyCloakGetUserByEmail,
-  keyCloakLoginUser
+  keyCloakLoginUser,
+  keyCloakGetUserSessions
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import {
@@ -56,7 +57,6 @@ export const updatePasswordOfUserForUser = async (
   newPassword: string
 ) => {
   await can(tokenUser, UserScopes.UPDATE_USER, "user", id);
-  console.log(tokenUser);
   try {
     await keyCloakLoginUser(tokenUser.preferred_username, currentPassword);
   } catch (error) {
@@ -107,4 +107,17 @@ export const changePasswordForUser = async (
 ) => {
   const user = await verifyToken(token, Tokens.PASSWORD_RESET);
   await keyCloakUpdatePasswordOfUser(user.id, password);
+};
+
+export const getUserSessionsForUser = async (
+  tokenUser: TokenUser,
+  id: string
+) => {
+  await can(tokenUser, UserScopes.READ_USER_SESSION, "user", id);
+  try {
+    return await keyCloakGetUserSessions(id);
+  } catch (error) {
+    console.log("GOT", error, "GET ANAND");
+    return { error: true };
+  }
 };

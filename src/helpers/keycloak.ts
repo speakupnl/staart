@@ -13,6 +13,7 @@ import jwt, { decode } from "jsonwebtoken";
 import { ErrorCode } from "../interfaces/enum";
 import Axios from "axios";
 import { stringify } from "query-string";
+import { TokenUser } from "../interfaces/tables/user";
 
 interface JWT {
   jti: string;
@@ -284,5 +285,18 @@ export const keyCloakUpdateGroup = async (id: string, data: KeyValue) => {
 export const keyCloakDeleteGroup = async (id: string) => {
   return await keyCloakTry(async () => {
     return await speakHub.groups.del({ id, realm: KEYCLOAK_REALM });
+  });
+};
+
+export const keyCloakGetUserSessions = async (id: string) => {
+  return await keyCloakTry(async () => {
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/users/${id}/sessions`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
   });
 };

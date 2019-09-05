@@ -106,6 +106,7 @@ export const authHandler = async (
         // Token has expired
       }
       decoded.id = decoded.sub;
+      decoded.token = userJwt;
       res.locals.token = decoded;
     }
   }

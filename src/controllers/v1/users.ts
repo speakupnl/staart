@@ -17,7 +17,8 @@ import {
   updatePasswordOfUserForUser,
   sendEmailVerificationToUserForUser,
   getUserGroupsForUser,
-  removeUserFromGroupForUser
+  removeUserFromGroupForUser,
+  getUserSessionsForUser
 } from "../../rest/user";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -65,6 +66,11 @@ export class AuthController {
     res.json(
       await sendEmailVerificationToUserForUser(res.locals.token, req.params.id)
     );
+  }
+
+  @Get(":id/sessions")
+  async getUserSessions(req: Request, res: Response) {
+    res.json(await getUserSessionsForUser(res.locals.token, req.params.id));
   }
 
   /**

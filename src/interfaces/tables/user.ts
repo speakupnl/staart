@@ -76,6 +76,7 @@ export interface Session extends IdRow {
 }
 
 export interface TokenUser {
+  token: string;
   sub: string;
   jti: string;
   exp: number;
