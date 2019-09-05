@@ -68,6 +68,15 @@ export const updateGroupForUser = async (
   data: KeyValue
 ) => {
   await can(tokenUser, OrgScopes.UPDATE_ORG, "group", id);
+  // Users should not be able to edit their customer ID
+  if (data.attributes && data.attributes.stripeCustomerId)
+    delete data.attributes.stripeCustomerId;
+  // Make sure you don't delete any pre-existing attributes
+  const attributes = {
+    ...(await keyCloakGetGroup(id)).attributes,
+    ...(data.attributes || {})
+  };
+  data.attributes = attributes;
   await keyCloakUpdateGroup(id, data);
   return { updated: true, message: "user-updated" };
 };

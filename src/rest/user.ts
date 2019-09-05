@@ -40,9 +40,6 @@ export const updateUserForUser = async (
   data: KeyValue
 ) => {
   await can(tokenUser, UserScopes.UPDATE_USER, "user", id);
-  // Users should not be able to update their stripeCustomerId
-  if (data && data.attributes && data.attributes.stripeCustomerId)
-    delete data.attributes.stripeCustomerId;
   await keyCloakUpdateUser(id, data);
   return { updated: true, message: "user-updated" };
 };
