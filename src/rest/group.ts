@@ -9,7 +9,8 @@ import {
   keyCloakRemoveUserFromGroup,
   keyCloakGetGroupMembers,
   keyCloakGetUserByEmail,
-  keyCloakCreateUser
+  keyCloakCreateUser,
+  keyCloakGetTeamApplications
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import { OrgScopes, AdminScopes, ErrorCode } from "../interfaces/enum";
@@ -470,5 +471,16 @@ export const createOrganizationSourceForUser = async (
     }
     throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
   }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationApplicationsForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakGetTeamApplications(organizationId);
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };

@@ -31,7 +31,8 @@ import {
   getOrganizationPricingPlansForUser,
   createOrganizationSourceForUser,
   deleteOrganizationSourceForUser,
-  updateOrganizationSourceForUser
+  updateOrganizationSourceForUser,
+  getOrganizationApplicationsForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -179,50 +180,6 @@ export class AuthController {
     );
   }
 
-  @Get(":id/sources")
-  async getSources(req: Request, res: Response) {
-    const organizationId = req.params.id;
-    joiValidate(
-      { organizationId: Joi.string().required() },
-      { organizationId }
-    );
-    const subscriptionParams = { ...req.query };
-    joiValidate(
-      {
-        start: Joi.string(),
-        itemsPerPage: Joi.number()
-      },
-      subscriptionParams
-    );
-    res.json(
-      await getOrganizationSourcesForUser(
-        res.locals.token,
-        organizationId,
-        subscriptionParams
-      )
-    );
-  }
-
-  @Get(":id/sources/:sourceId")
-  async getSource(req: Request, res: Response) {
-    const organizationId = req.params.id;
-    const sourceId = req.params.sourceId;
-    joiValidate(
-      {
-        organizationId: Joi.string().required(),
-        sourceId: Joi.string().required()
-      },
-      { organizationId, sourceId }
-    );
-    res.json(
-      await getOrganizationSourceForUser(
-        res.locals.token,
-        organizationId,
-        sourceId
-      )
-    );
-  }
-
   @Get(":id/subscriptions")
   async getSubscriptions(req: Request, res: Response) {
     const organizationId = req.params.id;
@@ -341,6 +298,50 @@ export class AuthController {
     );
   }
 
+  @Get(":id/sources")
+  async getSources(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    joiValidate(
+      { organizationId: Joi.string().required() },
+      { organizationId }
+    );
+    const subscriptionParams = { ...req.query };
+    joiValidate(
+      {
+        start: Joi.string(),
+        itemsPerPage: Joi.number()
+      },
+      subscriptionParams
+    );
+    res.json(
+      await getOrganizationSourcesForUser(
+        res.locals.token,
+        organizationId,
+        subscriptionParams
+      )
+    );
+  }
+
+  @Get(":id/sources/:sourceId")
+  async getSource(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const sourceId = req.params.sourceId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        sourceId: Joi.string().required()
+      },
+      { organizationId, sourceId }
+    );
+    res.json(
+      await getOrganizationSourceForUser(
+        res.locals.token,
+        organizationId,
+        sourceId
+      )
+    );
+  }
+
   @Put(":id/sources")
   async putSources(req: Request, res: Response) {
     const organizationId = req.params.id;
@@ -398,5 +399,69 @@ export class AuthController {
         req.body
       )
     );
+  }
+
+  @Get(":id/applications")
+  async getApplications(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    joiValidate(
+      { organizationId: Joi.string().required() },
+      { organizationId }
+    );
+    res.json({});
+  }
+
+  @Put(":id/applications")
+  async putApplications(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    joiValidate(
+      { organizationId: Joi.string().required() },
+      { organizationId }
+    );
+    res.status(CREATED).json({});
+  }
+
+  @Get(":id/applications/:applicationId")
+  async getApplication(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json(
+      await getOrganizationApplicationsForUser(res.locals.user, organizationId)
+    );
+  }
+
+  @Delete(":id/applications/:applicationId")
+  async deleteApplication(req: Request, res: Response) {
+    const applicationId = req.params.applicationId;
+    const organizationId = req.params.id;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json({});
+  }
+
+  @Patch(":id/applications/:applicationId")
+  async patchApplication(req: Request, res: Response) {
+    const applicationId = req.params.applicationId;
+    const organizationId = req.params.id;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json({});
   }
 }

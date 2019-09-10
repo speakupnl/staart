@@ -306,3 +306,16 @@ export const keyCloakGetUserSessions = async (id: string) => {
     )).data;
   });
 };
+
+export const keyCloakGetTeamApplications = async (id: string) => {
+  return await keyCloakTry(async () => {
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
