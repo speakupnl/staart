@@ -434,10 +434,11 @@ export const keyCloakCreateTeamApplicationSecret = async (
     await keyCloakGetTeamApplication(id, applicationId);
     return (await Axios.post(
       `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/client-secret`,
-      undefined,
+      {},
       {
         headers: {
-          Authorization: `Bearer ${speakHub.getAccessToken()}`
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
         }
       }
     )).data;
