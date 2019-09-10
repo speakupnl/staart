@@ -1,6 +1,6 @@
 {
   "name": "speakup-staart",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "main": "index.js",
   "repository": "git@github.com:speakupnl/staart.git",
   "author": "Anand Chowdhary <mail@anandchowdhary.com>",

@@ -354,13 +354,57 @@ export const keyCloakDeleteTeamApplication = async (
 ) => {
   return await keyCloakTry(async () => {
     await keyCloakGetTeamApplication(id, applicationId);
-    return await Axios.delete(
+    return (await Axios.delete(
       `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
       {
         headers: {
           Authorization: `Bearer ${speakHub.getAccessToken()}`
         }
       }
-    );
+    )).data;
+  });
+};
+
+export const keyCloakCreateTeamApplication = async (
+  id: string,
+  data: KeyValue
+) => {
+  data = data || {};
+  data.attributes = data.attributes || {};
+  data.attributes.ownerGroup = id;
+  return await keyCloakTry(async () => {
+    return (await Axios.post(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakUpdateTeamApplication = async (
+  id: string,
+  applicationId: string,
+  data: KeyValue
+) => {
+  data = data || {};
+  data.attributes = data.attributes || {};
+  data.attributes.ownerGroup = id;
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.put(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
   });
 };

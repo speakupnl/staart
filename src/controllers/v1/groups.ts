@@ -34,7 +34,9 @@ import {
   updateOrganizationSourceForUser,
   getOrganizationApplicationsForUser,
   getOrganizationApplicationForUser,
-  deleteOrganizationApplicationForUser
+  deleteOrganizationApplicationForUser,
+  createOrganizationApplicationForUser,
+  updateOrganizationApplicationForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -422,7 +424,15 @@ export class AuthController {
       { organizationId: Joi.string().required() },
       { organizationId }
     );
-    res.status(CREATED).json({});
+    res
+      .status(CREATED)
+      .json(
+        await createOrganizationApplicationForUser(
+          res.locals.token,
+          organizationId,
+          req.body
+        )
+      );
   }
 
   @Get(":id/applications/:applicationId")
@@ -476,6 +486,13 @@ export class AuthController {
       },
       { organizationId, applicationId }
     );
-    res.json({});
+    res.json(
+      await updateOrganizationApplicationForUser(
+        res.locals.token,
+        organizationId,
+        applicationId,
+        req.body
+      )
+    );
   }
 }
