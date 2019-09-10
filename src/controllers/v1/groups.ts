@@ -36,7 +36,9 @@ import {
   getOrganizationApplicationForUser,
   deleteOrganizationApplicationForUser,
   createOrganizationApplicationForUser,
-  updateOrganizationApplicationForUser
+  updateOrganizationApplicationForUser,
+  getOrganizationApplicationSecretForUser,
+  createOrganizationApplicationSecretForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -492,6 +494,46 @@ export class AuthController {
         organizationId,
         applicationId,
         req.body
+      )
+    );
+  }
+
+  @Get(":id/applications/:applicationId/secret")
+  async getApplicationSecret(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json(
+      await getOrganizationApplicationSecretForUser(
+        res.locals.token,
+        organizationId,
+        applicationId
+      )
+    );
+  }
+
+  @Put(":id/applications/:applicationId/secret")
+  async putApplicationSecret(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json(
+      await createOrganizationApplicationSecretForUser(
+        res.locals.token,
+        organizationId,
+        applicationId
       )
     );
   }

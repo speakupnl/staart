@@ -408,3 +408,38 @@ export const keyCloakUpdateTeamApplication = async (
     )).data;
   });
 };
+
+export const keyCloakGetTeamApplicationSecret = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/client-secret`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakCreateTeamApplicationSecret = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.post(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/client-secret`,
+      undefined,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
