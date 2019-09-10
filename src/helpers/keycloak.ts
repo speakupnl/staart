@@ -316,6 +316,51 @@ export const keyCloakGetTeamApplications = async (id: string) => {
           Authorization: `Bearer ${speakHub.getAccessToken()}`
         }
       }
-    )).data;
+    )).data.filter(
+      (application: any) =>
+        typeof application === "object" &&
+        application.attributes &&
+        application.attributes.ownerGroup === id
+    );
+  });
+};
+
+export const keyCloakGetTeamApplication = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    const data = await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    );
+    if (
+      data.data &&
+      data.data.attributes &&
+      data.data.attributes.ownerGroup === id
+    )
+      return data.data;
+    throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+  });
+};
+
+export const keyCloakDeleteTeamApplication = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return await Axios.delete(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    );
   });
 };
