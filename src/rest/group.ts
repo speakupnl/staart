@@ -9,7 +9,14 @@ import {
   keyCloakRemoveUserFromGroup,
   keyCloakGetGroupMembers,
   keyCloakGetUserByEmail,
-  keyCloakCreateUser
+  keyCloakCreateUser,
+  keyCloakGetTeamApplications,
+  keyCloakGetTeamApplication,
+  keyCloakDeleteTeamApplication,
+  keyCloakCreateTeamApplication,
+  keyCloakUpdateTeamApplication,
+  keyCloakGetTeamApplicationSecret,
+  keyCloakCreateTeamApplicationSecret
 } from "../helpers/keycloak";
 import { can } from "../helpers/authorization";
 import { OrgScopes, AdminScopes, ErrorCode } from "../interfaces/enum";
@@ -470,5 +477,99 @@ export const createOrganizationSourceForUser = async (
     }
     throw new Error(ErrorCode.STRIPE_NO_CUSTOMER);
   }
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationApplicationsForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakGetTeamApplications(organizationId);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationApplicationForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  applicationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakGetTeamApplication(organizationId, applicationId);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const deleteOrganizationApplicationForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  applicationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.DELETE_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakDeleteTeamApplication(organizationId, applicationId);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const createOrganizationApplicationForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  data: KeyValue
+) => {
+  if (
+    await can(tokenUser, OrgScopes.CREATE_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakCreateTeamApplication(organizationId, data);
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const updateOrganizationApplicationForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  applicationId: string,
+  data: KeyValue
+) => {
+  if (
+    await can(tokenUser, OrgScopes.UPDATE_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakUpdateTeamApplication(
+      organizationId,
+      applicationId,
+      data
+    );
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const getOrganizationApplicationSecretForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  applicationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakGetTeamApplicationSecret(
+      organizationId,
+      applicationId
+    );
+  throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+};
+
+export const createOrganizationApplicationSecretForUser = async (
+  tokenUser: TokenUser,
+  organizationId: string,
+  applicationId: string
+) => {
+  if (
+    await can(tokenUser, OrgScopes.READ_ORG_API_KEYS, "group", organizationId)
+  )
+    return await keyCloakCreateTeamApplicationSecret(
+      organizationId,
+      applicationId
+    );
   throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
 };

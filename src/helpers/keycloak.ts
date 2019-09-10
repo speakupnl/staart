@@ -306,3 +306,141 @@ export const keyCloakGetUserSessions = async (id: string) => {
     )).data;
   });
 };
+
+export const keyCloakGetTeamApplications = async (id: string) => {
+  return await keyCloakTry(async () => {
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data.filter(
+      (application: any) =>
+        typeof application === "object" &&
+        application.attributes &&
+        application.attributes.ownerGroup === id
+    );
+  });
+};
+
+export const keyCloakGetTeamApplication = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    const data = await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    );
+    if (
+      data.data &&
+      data.data.attributes &&
+      data.data.attributes.ownerGroup === id
+    )
+      return data.data;
+    throw new Error(ErrorCode.INSUFFICIENT_PERMISSION);
+  });
+};
+
+export const keyCloakDeleteTeamApplication = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.delete(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakCreateTeamApplication = async (
+  id: string,
+  data: KeyValue
+) => {
+  data = data || {};
+  data.attributes = data.attributes || {};
+  data.attributes.ownerGroup = id;
+  return await keyCloakTry(async () => {
+    return (await Axios.post(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakUpdateTeamApplication = async (
+  id: string,
+  applicationId: string,
+  data: KeyValue
+) => {
+  data = data || {};
+  data.attributes = data.attributes || {};
+  data.attributes.ownerGroup = id;
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.put(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakGetTeamApplicationSecret = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/client-secret`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakCreateTeamApplicationSecret = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.post(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/client-secret`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
