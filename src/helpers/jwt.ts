@@ -7,8 +7,7 @@ import {
   TOKEN_EXPIRY_LOGIN,
   TOKEN_EXPIRY_REFRESH,
   TOKEN_EXPIRY_APPROVE_LOCATION,
-  TOKEN_EXPIRY_API_KEY_MAX,
-  REDIS_URL
+  TOKEN_EXPIRY_API_KEY_MAX
 } from "../config";
 import { User, AccessToken } from "../interfaces/tables/user";
 import { Tokens, ErrorCode, EventType, Templates } from "../interfaces/enum";
@@ -22,7 +21,6 @@ import { mail } from "./mail";
 import i18n from "../i18n";
 import { ApiKey } from "../interfaces/tables/organization";
 import cryptoRandomString from "crypto-random-string";
-import { createHandyClient } from "handy-redis";
 import ipRangeCheck from "ip-range-check";
 
 /**
@@ -151,48 +149,6 @@ export const approveLocationToken = (id: string, ipAddress: string) =>
     TOKEN_EXPIRY_APPROVE_LOCATION,
     Tokens.APPROVE_LOCATION
   );
-
-/**
- * Generate a new refresh JWT
- */
-export const refreshToken = (id: string) =>
-  generateToken({ id }, TOKEN_EXPIRY_REFRESH, Tokens.REFRESH);
-
-const client = createHandyClient({
-  url: REDIS_URL
-});
-
-/**
- * Check if a token is invalidated in Redis
- * @param token - JWT
- */
-export const checkInvalidatedToken = async (token: string) => {
-  const details = decode(token);
-  if (
-    details &&
-    typeof details === "object" &&
-    details.jti &&
-    (await client.get(`${JWT_ISSUER}-revoke-${details.sub}-${details.jti}`))
-  )
-    throw new Error(ErrorCode.REVOKED_TOKEN);
-};
-
-/**
- * Invalidate a JWT using Redis
- * @param token - JWT
- */
-export const invalidateToken = async (token: string) => {
-  const details = decode(token);
-  if (details && typeof details === "object" && details.jti)
-    client.set(
-      `${JWT_ISSUER}-revoke-${details.sub}-${details.jti}`,
-      "1",
-      details.exp && [
-        "EX",
-        Math.floor((details.exp - new Date().getTime()) / 1000)
-      ]
-    );
-};
 
 export const checkIpRestrictions = (apiKey: ApiKeyResponse, locals: Locals) => {
   if (!apiKey.ipRestrictions) return;
