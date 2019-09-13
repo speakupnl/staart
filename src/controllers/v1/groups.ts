@@ -38,7 +38,13 @@ import {
   createOrganizationApplicationForUser,
   updateOrganizationApplicationForUser,
   getOrganizationApplicationSecretForUser,
-  createOrganizationApplicationSecretForUser
+  createOrganizationApplicationSecretForUser,
+  getOrganizationApplicationDefaultScopesForUser,
+  updateOrganizationApplicationDefaultScopesForUser,
+  deleteOrganizationApplicationDefaultScopesForUser,
+  deleteOrganizationApplicationOptionalScopesForUser,
+  updateOrganizationApplicationOptionalScopesForUser,
+  getOrganizationApplicationOptionalScopesForUser
 } from "../../rest/group";
 import { authHandler } from "../../helpers/middleware";
 import asyncHandler from "express-async-handler";
@@ -534,6 +540,138 @@ export class AuthController {
         res.locals.token,
         organizationId,
         applicationId
+      )
+    );
+  }
+
+  @Get(":id/applications/:applicationId/default-scopes")
+  async getApplicationDefaultScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json(
+      await getOrganizationApplicationDefaultScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId
+      )
+    );
+  }
+
+  @Put(":id/applications/:applicationId/default-scopes/:scopeId")
+  async putApplicationDefaultScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    const scopeId = req.params.scopeId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required(),
+        scopeId: Joi.string().required()
+      },
+      { organizationId, applicationId, scopeId }
+    );
+    res.json(
+      await updateOrganizationApplicationDefaultScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId,
+        scopeId
+      )
+    );
+  }
+
+  @Delete(":id/applications/:applicationId/default-scopes/:scopeId")
+  async deleteApplicationDefaultScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    const scopeId = req.params.scopeId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required(),
+        scopeId: Joi.string().required()
+      },
+      { organizationId, applicationId, scopeId }
+    );
+    res.json(
+      await deleteOrganizationApplicationDefaultScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId,
+        scopeId
+      )
+    );
+  }
+
+  @Get(":id/applications/:applicationId/optional-scopes")
+  async getApplicationOptionalScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required()
+      },
+      { organizationId, applicationId }
+    );
+    res.json(
+      await getOrganizationApplicationOptionalScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId
+      )
+    );
+  }
+
+  @Put(":id/applications/:applicationId/optional-scopes/:scopeId")
+  async putApplicationOptionalScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    const scopeId = req.params.scopeId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required(),
+        scopeId: Joi.string().required()
+      },
+      { organizationId, applicationId, scopeId }
+    );
+    res.json(
+      await updateOrganizationApplicationOptionalScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId,
+        scopeId
+      )
+    );
+  }
+
+  @Delete(":id/applications/:applicationId/optional-scopes/:scopeId")
+  async deleteApplicationOptionalScopes(req: Request, res: Response) {
+    const organizationId = req.params.id;
+    const applicationId = req.params.applicationId;
+    const scopeId = req.params.scopeId;
+    joiValidate(
+      {
+        organizationId: Joi.string().required(),
+        applicationId: Joi.string().required(),
+        scopeId: Joi.string().required()
+      },
+      { organizationId, applicationId, scopeId }
+    );
+    res.json(
+      await deleteOrganizationApplicationOptionalScopesForUser(
+        res.locals.token,
+        organizationId,
+        applicationId,
+        scopeId
       )
     );
   }

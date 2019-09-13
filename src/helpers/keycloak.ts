@@ -444,3 +444,130 @@ export const keyCloakCreateTeamApplicationSecret = async (
     )).data;
   });
 };
+
+export const keyCloakGetTeamApplicationDefaultScopes = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/default-client-scopes`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakUpdateTeamApplicationDefaultScopes = async (
+  id: string,
+  applicationId: string,
+  clientScopeId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.put(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/${clientScopeId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakDeleteTeamApplicationDefaultScopes = async (
+  id: string,
+  applicationId: string,
+  clientScopeId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.delete(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/${clientScopeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakGetTeamApplicationOfflineSessions = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/offline-sessions`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakGetTeamApplicationOptionalScopes = async (
+  id: string,
+  applicationId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.get(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/optional-client-scopes`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakUpdateTeamApplicationOptionalScopes = async (
+  id: string,
+  applicationId: string,
+  clientScopeId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.put(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/${clientScopeId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )).data;
+  });
+};
+
+export const keyCloakDeleteTeamApplicationOptionalScopes = async (
+  id: string,
+  applicationId: string,
+  clientScopeId: string
+) => {
+  return await keyCloakTry(async () => {
+    await keyCloakGetTeamApplication(id, applicationId);
+    return (await Axios.delete(
+      `${KEYCLOAK_BASE_URL}/admin/realms/apidev/clients/${applicationId}/${clientScopeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${speakHub.getAccessToken()}`
+        }
+      }
+    )).data;
+  });
+};
