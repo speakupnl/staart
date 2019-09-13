@@ -54,38 +54,38 @@ The base URL for these endpoints is `https://speakup-staart.caprover.oswaldlabs.
 
 | Endpoint | Method |
 | - | - |
-| `GET :id/billing` | Get a team's customer info |
-| `PATCH :id/billing` | Update customer info |
-| `GET :id/invoices` | Get a list of invoices |
-| `GET :id/invoices/:invoiceId` | Get a specific invoice |
-| `GET :id/subscriptions` | Get a list of subscriptions |
-| `GET :id/subscriptions/:subscriptionId` | Get a specific subscription |
-| `PATCH :id/subscriptions/:subscriptionId` | Update a subscription |
-| `PUT :id/subscriptions` | Create a new subscription |
-| `GET :id/pricing` | Get a list of pricing plans |
-| `GET :id/sources` | Get a list of payment methods |
-| `GET :id/sources/:sourceId` | Get a specific payment method |
-| `PUT :id/sources` | Create a new payment method |
-| `DELETE :id/sources/:sourceId` | Delete a payment method |
-| `PATCH :id/sources/:sourceId` | Update a payment method |
+| `GET /groups/:id/billing` | Get a team's customer info |
+| `PATCH /groups/:id/billing` | Update customer info |
+| `GET /groups/:id/invoices` | Get a list of invoices |
+| `GET /groups/:id/invoices/:invoiceId` | Get a specific invoice |
+| `GET /groups/:id/subscriptions` | Get a list of subscriptions |
+| `GET /groups/:id/subscriptions/:subscriptionId` | Get a specific subscription |
+| `PATCH /groups/:id/subscriptions/:subscriptionId` | Update a subscription |
+| `PUT /groups/:id/subscriptions` | Create a new subscription |
+| `GET /groups/:id/pricing` | Get a list of pricing plans |
+| `GET /groups/:id/sources` | Get a list of payment methods |
+| `GET /groups/:id/sources/:sourceId` | Get a specific payment method |
+| `PUT /groups/:id/sources` | Create a new payment method |
+| `DELETE /groups/:id/sources/:sourceId` | Delete a payment method |
+| `PATCH /groups/:id/sources/:sourceId` | Update a payment method |
 
 #### Applications
 
 | Endpoint | Method |
 | - | - |
-| `GET :id/applications` | Get a list of applications |
-| `PUT :id/applications` | Create a new application |
-| `GET :id/applications/:applicationId` | Get a specific application |
-| `DELETE :id/applications/:applicationId` | Delete an application |
-| `PATCH :id/applications/:applicationId` | Update an application |
-| `GET :id/applications/:applicationId/secret` | Get an application's client secret |
-| `PUT :id/applications/:applicationId/secret` | Create a new client secret |
-| `GET :id/applications/:applicationId/default-scopes` | Get a list of default scopes |
-| `PUT :id/applications/:applicationId/default-scopes/:scopeId` | Add a new default scopes |
-| `DELETE :id/applications/:applicationId/default-scopes/:scopeId` | Delete a default scopes |
-| `GET :id/applications/:applicationId/optional-scopes` | Get a list of optional scopes |
-| `PUT :id/applications/:applicationId/optional-scopes/:scopeId` | Add a new optional scopes |
-| `DELETE :id/applications/:applicationId/optional-scopes/:scopeId` | Delete an optional scopes |
+| `GET /groups/:id/applications` | Get a list of applications |
+| `PUT /groups/:id/applications` | Create a new application |
+| `GET /groups/:id/applications/:applicationId` | Get a specific application |
+| `DELETE /groups/:id/applications/:applicationId` | Delete an application |
+| `PATCH /groups/:id/applications/:applicationId` | Update an application |
+| `GET /groups/:id/applications/:applicationId/secret` | Get an application's client secret |
+| `PUT /groups/:id/applications/:applicationId/secret` | Create a new client secret |
+| `GET /groups/:id/applications/:applicationId/default-scopes` | Get a list of default scopes |
+| `PUT /groups/:id/applications/:applicationId/default-scopes/:scopeId` | Add a new default scopes |
+| `DELETE /groups/:id/applications/:applicationId/default-scopes/:scopeId` | Delete a default scopes |
+| `GET /groups/:id/applications/:applicationId/optional-scopes` | Get a list of optional scopes |
+| `PUT /groups/:id/applications/:applicationId/optional-scopes/:scopeId` | Add a new optional scopes |
+| `DELETE /groups/:id/applications/:applicationId/optional-scopes/:scopeId` | Delete an optional scopes |
 
 ## 📄 License
 
